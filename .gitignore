@@ -59,3 +59,4 @@ plugins/mysql
 
 # Wth this is here?
 sys_error.txt
+bin/autoupdate.lock

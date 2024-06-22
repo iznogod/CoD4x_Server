@@ -45,7 +45,7 @@ CC=gcc
 CPP=g++
 WIN_DEFINES=WINVER=0x501
 LINUX_DEFINES=_GNU_SOURCE
-CFLAGS=-m32 -msse2 -mfpmath=sse -Wall -fno-omit-frame-pointer -fmax-errors=15
+CFLAGS=-m32 -msse2 -mfpmath=sse -Wall -fno-omit-frame-pointer -fmax-errors=15 -fcommon
 
 ifeq ($(DEBUG), true)
 DCFLAGS=-fno-pie -O0 -g
@@ -56,13 +56,15 @@ endif
 WIN_LFLAGS=-m32 -g -Wl,--nxcompat,--stack,0x800000 -mwindows -static-libgcc -static -lm
 WIN_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 ws2_32 wsock32 iphlpapi gdi32 winmm crypt32 stdc++
 LINUX_LFLAGS=-m32 -g -static-libgcc -rdynamic -Wl,-rpath=./ -fcommon -no-pie -z noexecstack
-LINUX_LLIBS=tomcrypt mysqlclient mbedtls mbedcrypto mbedx509 dl pthread m stdc++
+LINUX_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 dl pthread m stdc++
+JH_LLIBS=mysqlclient
 BSD_LLIBS=tomcrypt mbedtls mbedcrypto mbedx509 pthread m execinfo stdc++
 COD4X_DEFINES=COD4X18UPDATE BUILD_NUMBER=$(BUILD_NUMBER) BUILD_BRANCH=$(BUILD_BRANCH) BUILD_REVISION=$(BUILD_REVISION)
 
 ########################
 # Setup directory names.
 SRC_DIR=src
+JH_EXT_DIR=src/JH
 PLUGIN_DIR=plugins
 BIN_DIR=bin
 LIB_DIR=lib
@@ -89,7 +91,7 @@ OS_SOURCES=$(wildcard $(WIN_DIR)/*.c)
 OS_OBJ=$(patsubst $(WIN_DIR)/%.c,$(OBJ_DIR)/%.o,$(OS_SOURCES))
 C_DEFINES=$(addprefix -D,$(COD4X_DEFINES) $(WIN_DEFINES))
 LFLAGS=$(WIN_LFLAGS)
-LLIBS=-L$(LIB_DIR)/ $(addprefix -l,$(WIN_LLIBS))
+LLIBS=-L$(LIB_DIR)/ $(addprefix -l,$(JH_LLIBS) $(WIN_LLIBS))
 RESOURCE_FILE=src/win32/win_cod4.res
 DEF_FILE=$(BIN_DIR)/$(TARGETNAME).def
 INTERFACE_LIB=$(PLUGINS_DIR)/libcom_plugin.a
@@ -109,7 +111,7 @@ UNAME := $(shell uname)
 ifeq ($(UNAME),FreeBSD)
 LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(BSD_LLIBS))
 else
-LLIBS=-L./$(LIB_DIR) $(addprefix -l,$(LINUX_LLIBS))
+LLIBS=-L./$(LIB_DIR) -L"/usr/lib/i386-linux-gnu/" $(addprefix -l,$(JH_LLIBS) $(LINUX_LLIBS))
 endif
 
 RESOURCE_FILE=
@@ -124,6 +126,7 @@ TARGET=$(addprefix $(BIN_DIR)/,$(TARGETNAME)$(BIN_EXT))
 ASM_SOURCES=$(wildcard $(SRC_DIR)/asmsource/*.asm)
 C_SOURCES=$(wildcard $(SRC_DIR)/*.c)
 CPP_SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
+JH_SOURCES=$(wildcard $(JH_EXT_DIR)/*.c)
 ZLIB_SOURCES=$(wildcard $(ZLIB_DIR)/*.c)
 ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 
@@ -132,6 +135,7 @@ ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 ASM_OBJ=$(patsubst $(SRC_DIR)/asmsource/%.asm,$(OBJ_DIR)/%.o,$(ASM_SOURCES))
 C_OBJ=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(C_SOURCES))
 CPP_OBJ=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SOURCES))
+JH_OBJ=$(patsubst $(JH_EXT_DIR)/%.c,$(OBJ_DIR)/%.o,$(JH_SOURCES))
 ZLIB_OBJ=$(patsubst $(ZLIB_DIR)/%.c,$(OBJ_DIR)/%.o,$(ZLIB_SOURCES))
 ASSETS_OBJ=$(patsubst $(ASSETS_DIR)/%.c,$(OBJ_DIR)/%.o,$(ASSETS_SOURCES))
 
@@ -194,7 +198,7 @@ endif
 
 ###############################
 # A rule to link server binary.
-$(TARGET): $(OS_OBJ) $(C_OBJ) $(CPP_OBJ) $(ZLIB_OBJ) $(ASSETS_OBJ) $(ASM_OBJ) obj/version.o
+$(TARGET): $(OS_OBJ) $(C_OBJ) $(CPP_OBJ) $(ZLIB_OBJ) $(ASSETS_OBJ) $(ASM_OBJ) $(JH_OBJ) obj/version.o
 	@echo   $(CC) $(TARGET)
 # CFLAGS for compiler, LFLAGS for linker.
 	@$(CC) $(LFLAGS) -o $@ $^ $(RESOURCE_FILE) $(LLIBS)
@@ -214,7 +218,7 @@ FORCE:
 # -march=nocona
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo   $(CC)  $@
-	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -I$(JH_EXT_DIR) -o $@ $<
 
 #####################################
 # A rule to build common c++ server code.
@@ -222,6 +226,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo   $(CPP)  $@
 	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+
+#####################################
+# A rule to build JH code
+#
+$(OBJ_DIR)/%.o: $(JH_EXT_DIR)/%.c
+	@echo   $(CC)  $@
+	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
 
 ################################
 # A rule to build assemler code.

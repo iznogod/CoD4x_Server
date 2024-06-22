@@ -1,4 +1,5 @@
 #include "jh.h"
+#include "mysql.h"
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
 {
@@ -30,6 +31,7 @@ void JH_Callback_PlayerConnect(int clientNum)
 
 void JH_AddFunctions()
 {
+  JH_mysql_addFunctions();
 }
 
 void JH_AddMethods()

@@ -870,7 +870,7 @@ __optimize3 __regparm1 void SVC_Info( netadr_t *from ) {
     Info_SetValueForKey( infostring, "gametype", sv_g_gametype->string );
     Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->boolean ) );
     Info_SetValueForKey( infostring, "build", va("%i", Sys_GetBuild()));
-    Info_SetValueForKey( infostring, "shortversion", va("x%d", PROTOCOL_VERSION) );
+    Info_SetValueForKey( infostring, "shortversion", va("x%d", PROTOCOL_VERSION_COD4X) );
 
     if(*sv_password->string)
     {
@@ -3040,7 +3040,7 @@ void SV_InitCvarsOnce(void){
 
     sv_paused = Cvar_RegisterBool("sv_paused", qfalse, CVAR_ROM, "True if the server is paused");
     sv_killserver = Cvar_RegisterBool("sv_killserver", qfalse, CVAR_ROM, "True if the server getting killed");
-    sv_protocol = Cvar_RegisterInt("protocol", PROTOCOL_VERSION, PROTOCOL_VERSION, PROTOCOL_VERSION, 0x44, "Protocol version");
+    sv_protocol = Cvar_RegisterInt("protocol", PROTOCOL_VERSION_COD4X, PROTOCOL_VERSION_COD4X, PROTOCOL_VERSION_COD4X, 0x44, "Protocol version");
     sv_privateClients = Cvar_RegisterInt("sv_privateClients", 0, 0, 64, 4, "Maximum number of private clients allowed onto this server");
     sv_hostname = Cvar_RegisterString("sv_hostname", "^5CoD4Host", 5, "Host name of the server");
 #ifdef PUNKBUSTER
@@ -3556,7 +3556,7 @@ void SV_BuildXAssetCSString()
     {
         strcpy(turrets, "nobspweapon=1 ");
     }
-    Com_sprintf(cs, sizeof(cs), "cod%d %s%s", PROTOCOL_VERSION, list, turrets);
+    Com_sprintf(cs, sizeof(cs), "cod%d %s%s", PROTOCOL_VERSION_COD4X, list, turrets);
     SV_SetConfigstring(2, cs);
 }
 

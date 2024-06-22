@@ -45,7 +45,7 @@
 
 #define	PORT_SERVER		28960
 
-#define	PROTOCOL_VERSION (unsigned int)(Sys_GetCommonVersion() + 0.00001)
+#define	PROTOCOL_VERSION_COD4X (unsigned int)(Sys_GetCommonVersion() + 0.00001)
 
 #define	LEGACY_PROTOCOL_VERSION	6
 

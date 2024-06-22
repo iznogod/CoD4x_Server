@@ -3,6 +3,6 @@
 
 #include "jh.h"
 
-void JH_FPS_AfterClientThink(client_t *client, int time);
+void JH_FPS_afterClientThink(client_t *client, int time);
 
 #endif

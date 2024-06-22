@@ -1,42 +1,37 @@
 #include "saveload.h"
 
-void JH_saveClearPositions(int entnum);
-void JH_saveCreate(scr_entref_t ent);
-void JH_saveSetPosition(scr_entref_t ent);
-void JH_saveSetAngles(scr_entref_t ent);
-void JH_saveSelect(scr_entref_t ent);
-void JH_saveGetPosition(scr_entref_t ent);
-void JH_saveGetAngles(scr_entref_t ent);
-void JH_setOriginAndAngles(scr_entref_t entref);
+extern JH_PLAYER jh_players[];
 
-JH_SAVE *jh_saves[MAX_CLIENTS] = {0};
-JH_SAVE *jh_selected_saves[MAX_CLIENTS] = {0};
+void JH_saveload_save(scr_entref_t ent);
+void JH_saveload_load(scr_entref_t ent);
+void JH_saveload_initPlayer(scr_entref_t ent);
+void JH_saveload_loadSave(int clientNum, JH_SAVE *save);
 
 void JH_saveLoad_addMethods()
 {
-    Scr_AddMethod("savecreate", JH_saveCreate, qfalse);
-    Scr_AddMethod("savesetposition", JH_saveSetPosition, qfalse);
-    Scr_AddMethod("savesetangles", JH_saveSetAngles, qfalse);
-    Scr_AddMethod("saveselect", JH_saveSelect, qfalse);
-    Scr_AddMethod("savegetposition", JH_saveGetPosition, qfalse);
-    Scr_AddMethod("savegetangles", JH_saveGetAngles, qfalse);
-    Scr_AddMethod("setoriginandangles", JH_setOriginAndAngles, qfalse);
+    Scr_AddMethod("jh_saveload_initplayer", JH_saveload_initPlayer, qfalse);
+    Scr_AddMethod("jh_saveload_save", JH_saveload_save, qfalse);
+    Scr_AddMethod("JH_saveload_load", JH_saveload_load, qfalse);
 }
 
-void JH_saveClearPositions(int entnum)
+void JH_saveload_clearSaves(int clientNum)
 {
-    JH_SAVE *save = jh_saves[entnum];
+    JH_SAVE *save = jh_players[clientNum].save;
     while (save != NULL)
     {
         JH_SAVE *prevSave = save->prevSave;
         free(save);
         save = prevSave;
     }
-    jh_saves[entnum] = NULL;
-    jh_selected_saves[entnum] = NULL;
+    jh_players[clientNum].save = NULL;
 }
 
-void JH_saveCreate(scr_entref_t ent)
+void JH_saveload_initPlayer(scr_entref_t ent)
+{
+    JH_saveload_clearSaves(ent.entnum);
+}
+
+void JH_saveload_save(scr_entref_t ent)
 {
     JH_SAVE *save = (JH_SAVE *)malloc(sizeof(JH_SAVE));
     if (save == NULL)
@@ -44,74 +39,45 @@ void JH_saveCreate(scr_entref_t ent)
         Scr_AddInt(0);
         return;
     }
-    save->prevSave = jh_saves[ent.entnum];
-    jh_saves[ent.entnum] = save;
+    save->checkpoint = jh_players[ent.entnum].checkpoint;
+    save->doubleRPGCount = jh_players[ent.entnum].run.doubleRPGCount;
+    save->FPSState = jh_players[ent.entnum].run.FPSState;
+    save->RPGCount = jh_players[ent.entnum].run.RPGCount;
+    save->runFlags = jh_players[ent.entnum].run.runFlags_ever;
+    save->prevSave = jh_players[ent.entnum].save;
+    jh_players[ent.entnum].save = save;
+    VectorCopy(g_entities[ent.entnum].client->ps.origin, save->origin);
+    VectorCopy(g_entities[ent.entnum].client->ps.viewangles, save->angles);
+    //todo: add rpgcount etc
     Scr_AddInt(1);
 }
 
-void JH_saveSetPosition(scr_entref_t ent)
-{
-    if (jh_saves[ent.entnum] != NULL)
-    {
-        Scr_GetVector(0, jh_saves[ent.entnum]->origin);
-    }
-}
-
-void JH_saveSetAngles(scr_entref_t ent)
-{
-    if (jh_saves[ent.entnum] != NULL)
-    {
-        Scr_GetVector(0, jh_saves[ent.entnum]->angles);
-    }
-}
-
-void JH_saveSelect(scr_entref_t ent)
+void JH_saveload_load(scr_entref_t ent)
 {
     int backwardsCount = Scr_GetInt(0);
-    jh_selected_saves[ent.entnum] = jh_saves[ent.entnum];
-    if (jh_selected_saves[ent.entnum] == NULL)
+    JH_SAVE *save = jh_players[ent.entnum].save;
+    while(backwardsCount > 0 && save != NULL)
     {
-        Scr_AddInt(0);
-        return;
-    }
-    while (backwardsCount > 0)
-    {
-        jh_selected_saves[ent.entnum] = jh_selected_saves[ent.entnum]->prevSave;
-        if (jh_selected_saves[ent.entnum] == NULL)
-        {
-            Scr_AddInt(0);
-            return;
-        }
+        save = save->prevSave;
         backwardsCount--;
     }
-    Scr_AddInt(1);
-}
-void JH_saveGetPosition(scr_entref_t ent)
-{
-    if (jh_selected_saves[ent.entnum] != NULL)
+    if(save == NULL)
     {
-        Scr_AddVector(jh_selected_saves[ent.entnum]->origin);
+        Scr_AddInt(0);
+    }
+    else
+    {
+        JH_saveload_loadSave(ent.entnum, save);
+        Scr_AddInt(1);
     }
 }
 
-void JH_saveGetAngles(scr_entref_t ent)
+void JH_saveload_loadSave(int clientNum, JH_SAVE *save)
 {
-    if (jh_selected_saves[ent.entnum] != NULL)
-    {
-        Scr_AddVector(jh_selected_saves[ent.entnum]->angles);
-    }
-}
-
-void JH_setOriginAndAngles(scr_entref_t entref)
-{
-    vec3_t origin;
-    vec3_t angles;
-    Scr_GetVector(0, origin);
-    Scr_GetVector(1, angles);
-
     // sets origin, angles
     // resets pm_flags and velocity
     // keeps stance
+    // todo: add rpg count etc
 
     extern void SV_UnlinkEntity(struct gentity_s * gEnt);
     extern void Pmove(struct pmove_t *);
@@ -121,8 +87,7 @@ void JH_setOriginAndAngles(scr_entref_t entref)
 #define PMF_PRONE 0x1
 #define EF_TELEPORT_BIT 0x2
 
-    struct gentity_s *ent;
-    ent = &g_entities[entref.entnum];
+    struct gentity_s *ent = &g_entities[clientNum];
 
     bool isUsingTurret;
 #ifdef COD2
@@ -155,8 +120,8 @@ void JH_setOriginAndAngles(scr_entref_t entref)
     ent->client->ps.jumpTime = 0; // to reset wallspeed effects
 
     // set origin
-    VectorCopy(origin, ent->client->ps.origin);
-    G_SetOrigin(ent, origin);
+    VectorCopy(save->origin, ent->client->ps.origin);
+    G_SetOrigin(ent, save->origin);
 
     // reset velocity
     ent->client->ps.velocity[0] = 0;
@@ -176,7 +141,7 @@ void JH_setOriginAndAngles(scr_entref_t entref)
     ent->client->ps.pm_flags &= ~PMF_PRONE;
     ent->client->sess.cmd.serverTime = level.time; // if this isnt set then errordecay takes place
 
-    SetClientViewAngle(ent, angles);
+    SetClientViewAngle(ent, save->angles);
 
     // create a pmove object and execute to bypass the errordecay thing
     struct pmove_t pm;
@@ -202,4 +167,11 @@ void JH_setOriginAndAngles(scr_entref_t entref)
     ent->client->ps.pm_flags = flags;
 
     SV_LinkEntity(ent);
+
+    JH_checkpoints_setCheckpoint(clientNum, save->checkpoint);
+    jh_players[clientNum].run.doubleRPGCount = save->doubleRPGCount;
+    jh_players[clientNum].run.FPSState = save->FPSState;
+    jh_players[clientNum].run.RPGCount = save->RPGCount;
+    jh_players[clientNum].run.runFlags_ever = save->runFlags;
+    jh_players[clientNum].jumpStartOriginSet = false;
 }

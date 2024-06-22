@@ -740,12 +740,10 @@ void GScr_LoadGameTypeScript(void)
     g_scr_data.gametype.playerkilled = GScr_LoadScriptAndLabel("jh/killed", "CodeCallback_PlayerKilled", 1);
 
     script_CallBacks_new[SCR_CB_PLAYERCOMMAND] = GScr_LoadScriptAndLabel("jh/playercommand", "CodeCallback_PlayerCommand", 1); //implemented
-    script_CallBacks_new[SCR_CB_JUMP] = GScr_LoadScriptAndLabel("jh/jump", "CodeCallback_Jump", 1); //implemented
     script_CallBacks_new[SCR_CB_RPGFIRE] = GScr_LoadScriptAndLabel("jh/rpg", "CodeCallback_FireRPG", 1); //implemented
-    script_CallBacks_new[SCR_CB_BOUNCE] = GScr_LoadScriptAndLabel("jh/bounce", "CodeCallback_Bounce", 1); //implemented
     script_CallBacks_new[SCR_CB_ELEVATE] = GScr_LoadScriptAndLabel("jh/elevate", "CodeCallback_Elevate", 1); //implemented
-	script_CallBacks_new[SCR_CB_LAND] = GScr_LoadScriptAndLabel("jh/land", "CodeCallback_Land", 1); //implemented
 	script_CallBacks_new[SCR_CB_FPS] = GScr_LoadScriptAndLabel("jh/fps", "CodeCallback_FPSChanged", 1); //implemented
+	script_CallBacks_new[SCR_CB_DRAWCHECKPOINTS] = GScr_LoadScriptAndLabel("jh/checkpoints", "CodeCallback_drawCheckpoints", 1); //implemented
 }
 
 

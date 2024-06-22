@@ -19,3 +19,8 @@ void JH_printf()
   char *str = Scr_GetString(0);
   Com_Printf(CON_CHANNEL_DONT_FILTER, str);
 }
+
+void JH_util_iprintln(int clientNum, char *msg)
+{
+    SV_GameSendServerCommand(clientNum, 0, va("%c \"%s\"", 'f', msg));
+}

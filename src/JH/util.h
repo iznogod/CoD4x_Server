@@ -4,5 +4,5 @@
 
 void JH_util_addFunctions();
 void JH_util_addMethods();
-
+void JH_util_iprintln(int clientNum, char *str);
 #endif

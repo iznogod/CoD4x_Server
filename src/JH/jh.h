@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
+
 #include "../scr_vm.h"
 #include "../server.h"
 #include "../bg_public.h"
@@ -11,23 +12,16 @@ extern "C"{
 #include "../g_shared.h"
 #include "../scr_vm_functions.h"
 
-#define NR_SAMPLES_FPS_AVERAGING 20
 
-typedef struct
-{
-    bool isElevating;
-    bool autoRPG;
-    bool memeMode;
-    bool halfBeat;
-    bool fpsFix;
-    bool couldBounce;
-    bool wasOnground;
-    int frameTimes[NR_SAMPLES_FPS_AVERAGING];
-    int frameNum;
-    int prevTime;
-    int avgFrameTime;
-    vec3_t oldVelocity;
-}JH_PLAYER;
+#include "jh_structs.h"
+#include "checkpoints.h"
+#include "mysql.h"
+#include "clientcommand.h"
+#include "saveload.h"
+#include "noclip.h"
+#include "util.h"
+#include "fps.h"
+#include "runs.h"
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin);
 void JH_Callback_RPG(gentity_t *player, gentity_t *rpg);
@@ -42,6 +36,5 @@ void JH_AddMethods();
 #ifdef __cplusplus
 };
 #endif
-
 
 #endif

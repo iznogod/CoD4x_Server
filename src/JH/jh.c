@@ -1,32 +1,48 @@
 #include "jh.h"
-#include "mysql.h"
-#include "clientcommand.h"
-#include "saveload.h"
-#include "noclip.h"
-#include "util.h"
-#include "fps.h"
-
-JH_PLAYER jh_players[MAX_CLIENTS];
+JH_PLAYER jh_players[MAX_CLIENTS] = {0};
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
 {
-  int callback = script_CallBacks_new[SCR_CB_JUMP];
+  client_t *client = &svs.clients[clientNum];
+  jh_players[clientNum].jumpTime = client->gentity->client->sess.cmd.serverTime;
+  VectorCopy(origin, jh_players[clientNum].jumpStartOrigin);
+  jh_players[clientNum].jumpStartOriginSet = true;
 
-  Scr_AddVector(origin);
-  Scr_AddInt(serverTime);
-  int threadId = Scr_ExecEntThread(&g_entities[clientNum], callback, 2);
-  Scr_FreeThread(threadId);
+  if(jh_players[clientNum].RPGTime > client->gentity->client->sess.cmd.serverTime - 500)
+  {
+    char str[MAX_STRING_CHARS];
+    snprintf(str, MAX_STRING_CHARS - 1, "Early RPG by %d", client->gentity->client->sess.cmd.serverTime - jh_players[clientNum].RPGTime);
+    JH_util_iprintln(clientNum, str);
+  }
 }
 
 void JH_Callback_RPG(gentity_t *player, gentity_t *rpg)
 {
   int callback = script_CallBacks_new[SCR_CB_RPGFIRE];
-  Scr_AddInt(player->client->lastServerTime);
-  Scr_AddFloat(player->client->ps.viewangles[0]);
   Scr_AddString(BG_GetWeaponDef(rpg->s.weapon)->szInternalName);
   Scr_AddEntity(rpg);
-  int threadId = Scr_ExecEntThread(player, callback, 4);
+  int threadId = Scr_ExecEntThread(player, callback, 2);
   Scr_FreeThread(threadId);
+  jh_players[player - g_entities].RPGTime = player->client->lastServerTime;
+  client_t *client = &svs.clients[player - g_entities];
+  if(jh_players[player - g_entities].bounceTime > jh_players[player - g_entities].jumpTime)
+  {
+    if(jh_players[player - g_entities].bounceTime > client->gentity->client->sess.cmd.serverTime - 500)
+    {
+      char str[MAX_STRING_CHARS];
+      snprintf(str, MAX_STRING_CHARS - 1, "Late RPG by %d", client->gentity->client->sess.cmd.serverTime - jh_players[player - g_entities].bounceTime);
+      JH_util_iprintln(player - g_entities, str);
+    }
+  }
+  else
+  {
+    if(jh_players[player - g_entities].jumpTime > client->gentity->client->sess.cmd.serverTime - 500)
+    {
+      char str[MAX_STRING_CHARS];
+      snprintf(str, MAX_STRING_CHARS - 1, "Late RPG by %d", client->gentity->client->sess.cmd.serverTime - jh_players[player - g_entities].jumpTime);
+      JH_util_iprintln(player - g_entities, str);
+    }
+  }
 }
 
 void JH_Callback_BeforeClientThink(client_t *client, usercmd_t *ucmd)
@@ -49,19 +65,39 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     //bounce
     if(bounced)
     {
-      Scr_AddVector(gclient->ps.velocity);
-      Scr_AddInt(gclient->sess.cmd.serverTime);
-      short ret = Scr_ExecEntThread(client->gentity, script_CallBacks_new[SCR_CB_BOUNCE], 2);
-      Scr_FreeThread(ret);
+      jh_players[clientNum].bounceTime = gclient->sess.cmd.serverTime;
+      if(jh_players[clientNum].RPGTime > gclient->sess.cmd.serverTime - 500)
+      {
+        char str[MAX_STRING_CHARS];
+        snprintf(str, MAX_STRING_CHARS - 1, "Early RPG by %d", gclient->sess.cmd.serverTime - jh_players[clientNum].RPGTime);
+        JH_util_iprintln(clientNum, str);
+      }
     }
 
     //land
     if (isOnGround && isOnGround != jh_players[clientNum].wasOnground)
     {
-      Scr_AddVector(gclient->ps.origin);
-      Scr_AddInt(ucmd->serverTime);
-      short ret = Scr_ExecEntThread(client->gentity, script_CallBacks_new[SCR_CB_LAND], 2);
-      Scr_FreeThread(ret);
+      //landed
+      if(jh_players[clientNum].jumpStartOriginSet)
+      {
+        char str[MAX_STRING_CHARS];
+        float offset_x = 30;
+
+        if(jh_players[clientNum].jumpStartOrigin[0] > client->gentity->client->ps.origin[0])
+          offset_x = -30;
+        float offset_y = 30;
+        if(jh_players[clientNum].jumpStartOrigin[1] > client->gentity->client->ps.origin[1])
+          offset_y = -30;
+        vec3_t diff;
+        diff[0] = fabs(client->gentity->client->ps.origin[0] -  jh_players[clientNum].jumpStartOrigin[0] + offset_x);
+        diff[1] = fabs(client->gentity->client->ps.origin[1] -  jh_players[clientNum].jumpStartOrigin[1] + offset_y);
+        diff[2] = fabs(client->gentity->client->ps.origin[2] -  jh_players[clientNum].jumpStartOrigin[2]);
+        float gap = sqrtf(diff[0] * diff[0] + diff[1] * diff[1]);
+        
+        snprintf(str, MAX_STRING_CHARS - 1, "Jumped (%f, %f, %f), gap %f", diff[0], diff[1], diff[2], gap);
+        JH_util_iprintln(clientNum, str);
+        jh_players[clientNum].jumpStartOriginSet = false;
+      }
     }
     jh_players[clientNum].wasOnground = isOnGround;
 
@@ -94,7 +130,8 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
       }
     }
   }
-  JH_FPS_AfterClientThink(client, gclient->sess.cmd.serverTime);
+  JH_FPS_afterClientThink(client, gclient->sess.cmd.serverTime);
+  JH_checkpoints_afterClientThink(client);
 }
 
 void JH_Callback_Elevate_Start(struct pmove_t *pm)
@@ -119,26 +156,35 @@ void JH_Callback_Elevate_End(struct pmove_t *pm)
 void JH_Callback_PlayerConnect(int clientNum)
 {
   jh_players[clientNum].isElevating = false;
-  jh_players[clientNum].oldVelocity[0] = 0;
-  jh_players[clientNum].oldVelocity[1] = 0;
-  jh_players[clientNum].oldVelocity[2] = 0;
   jh_players[clientNum].autoRPG = false;
   jh_players[clientNum].memeMode = false;
   jh_players[clientNum].halfBeat = false;
   jh_players[clientNum].fpsFix = false;
   jh_players[clientNum].couldBounce = true;
   jh_players[clientNum].wasOnground = false;
-  for(int i = 0; i < NR_SAMPLES_FPS_AVERAGING; i++)
+    for(int i = 0; i < FPS_NR_SAMPLES_FPS_AVERAGING; i++)
     jh_players[clientNum].frameTimes[i] = 0;
   jh_players[clientNum].frameNum = 0;
   jh_players[clientNum].prevTime = 0;
   jh_players[clientNum].avgFrameTime = 0;
+  jh_players[clientNum].oldVelocity[0] = 0;
+  jh_players[clientNum].oldVelocity[1] = 0;
+  jh_players[clientNum].oldVelocity[2] = 0;
+  JH_saveload_clearSaves(clientNum);
+  jh_players[clientNum].checkpoint = NULL;
+  jh_players[clientNum].playerState = PLAYERSTATE_CONNECTED;
+  jh_players[clientNum].RPGTime = 0;
+  jh_players[clientNum].bounceTime = 0;
+  jh_players[clientNum].jumpTime = 0;
+  jh_players[clientNum].jumpStartOriginSet = false;
+  jh_players[clientNum].run.runState = RUNSTATE_INITIALIZING;
 }
 
 void JH_AddFunctions()
 {
   JH_mysql_addFunctions();
   JH_util_addFunctions();
+  JH_checkpoints_addFunctions();
 }
 
 void JH_AddMethods()
@@ -147,4 +193,5 @@ void JH_AddMethods()
   JH_saveLoad_addMethods();
   JH_noclip_addMethods();
   JH_util_addMethods();
+  JH_checkpoints_addMethods();
 }

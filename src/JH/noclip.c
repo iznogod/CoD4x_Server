@@ -5,7 +5,7 @@ void JH_setNoclip(scr_entref_t entref);
 
 void JH_noclip_addMethods()
 {
-    Scr_AddMethod("setnoclip", JH_setNoclip, qfalse);
+  Scr_AddMethod("setnoclip", JH_setNoclip, qfalse);
 	Scr_AddMethod("getnoclip", JH_getNoclip, qfalse);
 }
 

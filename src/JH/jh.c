@@ -33,9 +33,12 @@ void JH_Callback_PlayerConnect(int clientNum)
 void JH_AddFunctions()
 {
   JH_mysql_addFunctions();
+  Scr_AddFunction("getcvar", GScr_GetCvar, 0);
+	Scr_AddFunction("setcvar", GScr_SetCvar, 0);
 }
 
 void JH_AddMethods()
 {
   JH_clientCommand_addMethods();
+  Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0 );
 }

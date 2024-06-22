@@ -9,6 +9,7 @@ extern "C"{
 #include "../bg_public.h"
 #include "../g_sv_shared.h"
 #include "../g_shared.h"
+#include "../scr_vm_functions.h"
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin);
 void JH_Callback_RPG(gentity_t *player, gentity_t *rpg);

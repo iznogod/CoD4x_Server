@@ -1,4 +1,4 @@
-#include "jh.h"
+#include "clientcommand.h"
 
 void JH_ClientCommand(scr_entref_t arg);
 

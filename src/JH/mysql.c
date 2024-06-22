@@ -1,7 +1,4 @@
-#include <mysql/mysql.h>
-#include <pthread.h>
 #include "mysql.h"
-#include "jh.h"
 
 struct mysql_async_connection *first_async_connection = NULL;
 struct mysql_async_task *first_async_task = NULL;
@@ -267,8 +264,6 @@ void JH_mysql_async_initializer()
         return;
     }
 
-    printf("A\n");
-
 	char *host = Scr_GetString(0);
     char *user = Scr_GetString(1);
     char *pass = Scr_GetString(2);
@@ -276,20 +271,15 @@ void JH_mysql_async_initializer()
     int port = Scr_GetInt(4);
     int connection_count= Scr_GetInt(5);
 
-    printf("B\n");
-
 	if(connection_count <= 0)
 	{
 		printf("gsc_mysql_async_initializer() need a positive connection_count in mysql_async_initializer\n");
 		return;
 	}
 
-    printf("C\n");
-
 	struct mysql_async_connection *current = first_async_connection;
 	for(int i = 0; i < connection_count; i++)
 	{
-        printf("D\n");
 		struct mysql_async_connection *newconnection = (struct mysql_async_connection*)malloc(sizeof(struct mysql_async_connection));
 		newconnection->next = NULL;
 		newconnection->connection = mysql_init(NULL);
@@ -297,32 +287,26 @@ void JH_mysql_async_initializer()
 		mysql_options(newconnection->connection, MYSQL_OPT_RECONNECT, &reconnect);
 		newconnection->connection = mysql_real_connect((MYSQL*)newconnection->connection, host, user, pass, db, port, NULL, 0);
 		newconnection->task = NULL;
-        printf("E\n");
 		if (first_async_connection == NULL)
 		{
-            printf("F\n");
 			newconnection->prev = NULL;
             newconnection->next = NULL;
 			first_async_connection = newconnection;
 		}
 		else
 		{
-            printf("G\n");
 			current->next = newconnection;
 			newconnection->prev = current;
             newconnection->next = NULL;
 		}
-        printf("H\n");
 		current = newconnection;
 	}
-    printf("I\n");
 	pthread_t async_handler;
 	if (pthread_create(&async_handler, NULL, mysql_async_query_handler, NULL) != 0)
 	{
 		printf("gsc_mysql_async_initializer() error detaching async handler thread\n");
 		return;
 	}
-    printf("J\n");
 	pthread_detach(async_handler);
 }
 

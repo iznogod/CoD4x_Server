@@ -2,6 +2,8 @@
 #define __SCR_MYSQL_H__
 
 #include <mysql/mysql.h>
+#include <pthread.h>
+#include "jh.h"
 
 #define SQL_MAX_QUERY_SIZE 1024
 

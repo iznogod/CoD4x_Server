@@ -1,6 +1,7 @@
 #include "jh.h"
 #include "mysql.h"
 #include "clientcommand.h"
+#include "saveload.h"
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
 {
@@ -40,5 +41,6 @@ void JH_AddFunctions()
 void JH_AddMethods()
 {
   JH_clientCommand_addMethods();
+  JH_saveLoad_addMethods();
   Scr_AddMethod("setclientcvar", PlayerCmd_SetClientDvar, 0 );
 }

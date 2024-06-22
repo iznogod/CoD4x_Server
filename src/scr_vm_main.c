@@ -283,7 +283,6 @@ void Scr_AddStockFunctions()
     Scr_AddFunction("exec", GScr_CbufAddText, 0);
     Scr_AddFunction("execex", GScr_CbufAddTextEx, 0);
     Scr_AddFunction("sha256", GScr_SHA256, 0);
-    Scr_AddFunction("addscriptcommand", GScr_AddScriptCommand, 0);
     Scr_AddFunction("isarray", Scr_IsArray_f, qfalse); // http://zeroy.com/script/variables/isarray.htm
     Scr_AddFunction("iscvardefined", GScr_IsCvarDefined, 0);
     Scr_AddFunction("arraytest", GScr_ArrayTest, 1);

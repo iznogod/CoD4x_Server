@@ -2543,45 +2543,6 @@ void GScr_IsCvarDefined()
     Scr_AddBool(defined);
 }
 
-void GScr_ScriptCommandCB()
-{
-    char buffer[1024];
-
-    if (!com_sv_running || !com_sv_running->boolean)
-        return;
-
-    if (Cmd_Argc() == 1)
-    {
-        Scr_ScriptCommand(Cmd_GetInvokerClnum(), Cmd_Argv(0), "");
-    }
-    else
-    {
-
-        Cmd_Argsv(1, buffer, sizeof(buffer));
-
-        Scr_ScriptCommand(Cmd_GetInvokerClnum(), Cmd_Argv(0), buffer);
-    }
-}
-
-void GScr_AddScriptCommand()
-{
-
-    if (Scr_GetNumParam() != 2)
-    {
-        Scr_Error("Usage: addScriptCommand <commandname> <default powerpoints is number between 1 and 100>");
-        return;
-    }
-    const char *command = Scr_GetString(0);
-    int defaultpower = Scr_GetInt(1);
-
-    if (command[0] == '\0')
-    {
-        Scr_Error("addScriptCommand: empty command");
-        return;
-    }
-
-    Cmd_AddCommandGeneric(command, NULL, GScr_ScriptCommandCB, qfalse, defaultpower);
-}
 
 void GScr_Spawn()
 {

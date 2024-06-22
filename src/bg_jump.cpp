@@ -3,6 +3,7 @@
 #include "cvar.h"
 #include "bg_local.h"
 #include "q_shared.h"
+#include "JH/jh.h"
 
 #define PMF_JUMPING 0x4000
 #define PMF_LADDER 0x8
@@ -163,6 +164,8 @@ void __cdecl Jump_Start(pmove_t *pm, pml_t *pml, float height)
   {
     ps->aimSpreadScale = 255.0;
   }
+
+  JH_Callback_Jump(ps->clientNum, pm->cmd.serverTime, pml->previous_origin);
 }
 
 

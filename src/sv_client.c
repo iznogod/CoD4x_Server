@@ -43,6 +43,8 @@
 #include "sec_crypto.h"
 #include "g_public.h"
 
+#include "JH/jh.h"
+
 #include "sapi.h"
 #include "xac_helper.h"
 
@@ -431,6 +433,8 @@ __optimize3 __regparm1 void SV_DirectConnect( netadr_t *from ) {
 
   // save the userinfo
   Q_strncpyz(newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
+
+  JH_Callback_PlayerConnect(clientNum);
 
   PHandler_Event(PLUGINS_ONPLAYERCONNECT, clientNum, from, "", userinfo, 0, denied, sizeof(denied));
 
@@ -3042,8 +3046,10 @@ void __cdecl SV_ClientThink(client_t *cl, struct usercmd_s *cmd)
     memcpy(&cl->lastUsercmd, cmd, sizeof(cl->lastUsercmd));
     if ( cl->state == CS_ACTIVE )
     {
+	  JH_Callback_BeforeClientThink(cl, cmd);
       G_SetLastServerTime(cl - svs.clients, cmd->serverTime);
       ClientThink(cl - svs.clients);
+	  JH_Callback_AfterClientThink(cl, cmd);
 
 /*
       if ( GetCurrentThreadId() == (_DWORD)g_DXDeviceThread && 0 == dword_A8402BC )

@@ -54,6 +54,7 @@
 	extern G_AntiLagRewindClientPos
 	extern G_AntiLag_RestoreClientPos
 	extern Bot_SetBotWeapon
+	extern JH_Callback_RPG
 
 ;Exports of g_weapon:
 	global _ZZ11Melee_TraceP9gentity_sP11weaponParmsifffP7trace_tPfE12traceOffsets
@@ -647,6 +648,16 @@ FireWeapon_80:
 	mov [esp+0x4], eax
 	mov [esp], ebx
 	call Weapon_RocketLauncher_Fire
+;Marker for start of RPG callback
+; The function Weapon_RocketLauncher_Fire puts the RPG entity into eax
+    pushad                      ; Make sure function won't thrash important registers
+    push eax                    ; Pass gentity_s* (RPG) to our callback function (reverse order)
+    push ebx                    ; Pass gentity_s* (player) to our callback function
+    call JH_Callback_RPG   ; Call our callback function
+    pop ebx                     ; Clean up arguments
+    pop eax                     ; Clean up arguments
+    popad                       ; Restore registers
+;Marker for end of RPG callback
 FireWeapon_20:
 	add esp, 0x9c
 	pop ebx

@@ -35,6 +35,8 @@
 #include "cscr_animtree.h"
 #include "cscr_parser.h"
 
+#include "JH/jh.h"
+
 #include <stdarg.h>
 #include <ctype.h>
 
@@ -298,6 +300,8 @@ void Scr_AddStockFunctions()
 	Scr_AddFunction("toupper", GScr_ToUpper, 0 );
 	Scr_AddFunction("strreplace", GScr_StrReplace, 0 );
     Scr_AddFunction("usercall", Scr_Usercall, 0);
+
+	JH_AddFunctions();
 }
 
 void Scr_AddStockMethods()
@@ -606,6 +610,8 @@ void Scr_AddStockMethods()
     // Force player stance.
     Scr_AddMethod("setstance", PlayerCmd_SetStance, qfalse);
     Scr_AddMethod("getentityhandlertype", EntityCmd_GetHandlerType, qtrue);
+
+	JH_AddMethods();
 }
 
 void Scr_InitFunctions()

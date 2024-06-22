@@ -725,39 +725,27 @@ struct scr_data_t
 extern struct scr_data_t g_scr_data;
 
 
-int script_CallBacks_new[8];
+int script_CallBacks_new[SCR_CB_COUNT];
 
 void GScr_LoadGameTypeScript(void)
 {
 
     /**************** Mandatory *************************/
-    char gametype_path[64];
+    Cvar_RegisterString("g_gametype", "cj", CVAR_LATCH | CVAR_SERVERINFO, "Current game type");
 
-    Cvar_RegisterString("g_gametype", "dm", CVAR_LATCH | CVAR_SERVERINFO, "Current game type");
+    g_scr_data.gametype.main = GScr_LoadScriptAndLabel("jh/main", "CodeCallback_Start", 1);
+    g_scr_data.gametype.playerconnect = GScr_LoadScriptAndLabel("jh/connect", "CodeCallback_PlayerConnect", 1);
+    g_scr_data.gametype.playerdisconnect = GScr_LoadScriptAndLabel("jh/disconnect", "CodeCallback_PlayerDisconnect", 1);
+    g_scr_data.gametype.playerdamage = GScr_LoadScriptAndLabel("jh/damage", "CodeCallback_PlayerDamage", 1);
+    g_scr_data.gametype.playerkilled = GScr_LoadScriptAndLabel("jh/killed", "CodeCallback_PlayerKilled", 1);
 
-    Com_sprintf(gametype_path, sizeof(gametype_path), "maps/mp/gametypes/%s", sv_g_gametype->string);
-
-    /* Don't raise a fatal error when we couldn't find this gametype script */
-    g_scr_data.gametype.main = GScr_LoadScriptAndLabel(gametype_path, "main", 0);
-    if (g_scr_data.gametype.main == 0)
-    {
-        Com_PrintError(CON_CHANNEL_SCRIPT,"Could not find script: %s\n", gametype_path);
-        Com_Printf(CON_CHANNEL_SCRIPT,"The gametype %s is not available! Will load gametype dm\n", sv_g_gametype->string);
-
-        Cvar_SetString(sv_g_gametype, "dm");
-        Com_sprintf(gametype_path, sizeof(gametype_path), "maps/mp/gametypes/%s", sv_g_gametype->string);
-        /* If we can not find gametype dm a fatal error gets raised */
-        g_scr_data.gametype.main = GScr_LoadScriptAndLabel(gametype_path, "main", 1);
-    }
-    g_scr_data.gametype.startupgametype = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_StartGameType", 1);
-    g_scr_data.gametype.playerconnect = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerConnect", 1);
-    g_scr_data.gametype.playerdisconnect = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerDisconnect", 1);
-    g_scr_data.gametype.playerdamage = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerDamage", 1);
-    g_scr_data.gametype.playerkilled = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerKilled", 1);
-    g_scr_data.gametype.playerlaststand = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_PlayerLastStand", 1);
-
-    /**************** Additional *************************/
-    script_CallBacks_new[SCR_CB_SCRIPTCOMMAND] = GScr_LoadScriptAndLabel("maps/mp/gametypes/_callbacksetup", "CodeCallback_ScriptCommand", 0);
+    script_CallBacks_new[SCR_CB_PLAYERCOMMAND] = GScr_LoadScriptAndLabel("jh/playercommand", "CodeCallback_PlayerCommand", 1); //implemented
+    script_CallBacks_new[SCR_CB_JUMP] = GScr_LoadScriptAndLabel("jh/jump", "CodeCallback_Jump", 1); //implemented
+    script_CallBacks_new[SCR_CB_RPGFIRE] = GScr_LoadScriptAndLabel("jh/rpg", "CodeCallback_FireRPG", 1); //implemented
+    script_CallBacks_new[SCR_CB_BOUNCE] = GScr_LoadScriptAndLabel("jh/bounce", "CodeCallback_Bounce", 1); //implemented
+    script_CallBacks_new[SCR_CB_ELEVATE] = GScr_LoadScriptAndLabel("jh/elevate", "CodeCallback_Elevate", 1); //implemented
+	script_CallBacks_new[SCR_CB_LAND] = GScr_LoadScriptAndLabel("jh/land", "CodeCallback_Land", 1); //implemented
+	script_CallBacks_new[SCR_CB_FPS] = GScr_LoadScriptAndLabel("jh/fps", "CodeCallback_FPSChanged", 1); //implemented
 }
 
 
@@ -778,7 +766,7 @@ void __cdecl GScr_LoadScripts(void)
 
     mapname = Cvar_RegisterString("mapname", "", CVAR_LATCH | CVAR_SYSTEMINFO, "The current map name");
 
-    Com_sprintf(mappath, sizeof(mappath), "maps/mp/%s", mapname->string);
+    Com_sprintf(mappath, sizeof(mappath), "maps/%s/%s", mapname->string, mapname->string);
 
     g_scr_data.levelscript = GScr_LoadScriptAndLabel(mappath, "main", qfalse);
 

@@ -407,11 +407,17 @@ typedef unsigned int sval_u;
 /**************** Additional *************************/
 
 typedef enum{
-    SCR_CB_SAY,
-    SCR_CB_SCRIPTCOMMAND
+    SCR_CB_PLAYERCOMMAND,
+    SCR_CB_JUMP,
+    SCR_CB_RPGFIRE,
+    SCR_CB_BOUNCE,
+    SCR_CB_FPS,
+    SCR_CB_ELEVATE,
+    SCR_CB_LAND,
+    SCR_CB_COUNT
 }script_CallBacks_new_t;
 
-extern int script_CallBacks_new[8];
+extern int script_CallBacks_new[SCR_CB_COUNT];
 
 typedef enum
 {

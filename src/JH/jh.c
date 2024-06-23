@@ -21,12 +21,16 @@ void JH_Callback_ClientEndFrame(gentity_t *ent)
       {
         int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_SPAWN], 0);
         Scr_FreeThread(threadId);
+        JH_checkpoints_drawCheckpoints(ent);
+        jh_players[clientNum].playerState = PLAYERSTATE_PLAYING;
         break;
       }
       case NEXTFRAME_SPECTATE:
       {
         int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_SPECTATE], 0);
         Scr_FreeThread(threadId);
+        JH_checkpoints_hideCheckpoints(ent);
+        jh_players[clientNum].playerState = PLAYERSTATE_SPECTATING;
         break;
       }
       default:
@@ -63,7 +67,7 @@ void JH_Callback_RPG(gentity_t *player, gentity_t *rpg)
   jh_players[player - g_entities].RPGTime = player->client->lastServerTime;
   client_t *client = &svs.clients[player - g_entities];
   char str[MAX_STRING_CHARS];
-  snprintf(str, MAX_STRING_CHARS - 1, "RPG angle: %f", client->gentity->client->ps.viewangles[0]);
+  snprintf(str, MAX_STRING_CHARS - 1, "RPG angle: %.2f", client->gentity->client->ps.viewangles[0]);
   JH_util_iprintln(player - g_entities, str);
   if(jh_players[player - g_entities].bounceTime > jh_players[player - g_entities].jumpTime)
   {
@@ -94,7 +98,6 @@ void JH_Callback_BeforeClientThink(client_t *client, usercmd_t *ucmd)
     int fps = atoi(fpsstring);
     if(fps > 0 && fps <= 1000)
     {
-      int oldServerTime = ucmd->serverTime;
       int actualFrameTime = ucmd->serverTime - jh_players[client - svs.clients].prevTime;
       int wantedFrameTime = 1000 / fps;
       if(actualFrameTime != wantedFrameTime && abs(actualFrameTime - wantedFrameTime) < 10 && abs(actualFrameTime - wantedFrameTime) <= actualFrameTime / 2)
@@ -102,7 +105,6 @@ void JH_Callback_BeforeClientThink(client_t *client, usercmd_t *ucmd)
         // adjust frametime
         client->lastUsercmd.serverTime = client->lastUsercmd.serverTime - actualFrameTime + wantedFrameTime;
         ucmd->serverTime = ucmd->serverTime - actualFrameTime + wantedFrameTime;
-        printf("Adjusting frametime, was %d is now %d\n", oldServerTime, ucmd->serverTime);
       }
     }
   }
@@ -152,7 +154,7 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
         diff[2] = fabs(client->gentity->client->ps.origin[2] -  jh_players[clientNum].jumpStartOrigin[2]);
         float gap = sqrtf(diff[0] * diff[0] + diff[1] * diff[1]);
         
-        snprintf(str, MAX_STRING_CHARS - 1, "Jumped (%f, %f, %f), gap %f", diff[0], diff[1], diff[2], gap);
+        snprintf(str, MAX_STRING_CHARS - 1, "Jumped (%.2f, %.2f, %.2f), gap %.2f", diff[0], diff[1], diff[2], gap);
         JH_util_iprintln(clientNum, str);
         jh_players[clientNum].jumpStartOriginSet = false;
       }
@@ -236,7 +238,7 @@ void JH_Callback_PlayerConnect(int clientNum)
   jh_players[clientNum].oldVelocity[2] = 0;
   JH_saveload_clearSaves(clientNum);
   jh_players[clientNum].checkpoint = NULL;
-  jh_players[clientNum].playerState = PLAYERSTATE_PLAYING;
+  jh_players[clientNum].playerState = PLAYERSTATE_CONNECTED;
   jh_players[clientNum].RPGTime = 0;
   jh_players[clientNum].bounceTime = 0;
   jh_players[clientNum].jumpTime = 0;

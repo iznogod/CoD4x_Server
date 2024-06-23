@@ -1,4 +1,4 @@
-#include "jh.h"
+#include "checkpoints.h"
 
 int checkpointCount;
 extern JH_PLAYER jh_players[];

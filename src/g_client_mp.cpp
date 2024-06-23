@@ -6,6 +6,8 @@
 #include "server_public.h"
 #include "plugin_handler.h"
 
+#include "JH/jh.h"
+
 void __cdecl ClientClearFields(gclient_s *client)
 {
     client->useHoldEntity.setEnt(0);
@@ -143,7 +145,8 @@ extern "C" void __cdecl ClientSpawn(gentity_s *ent, const float *spawn_origin, c
   client->lastSpawnTime = level.time;
   client->sess.cmd.serverTime = level.time;
   client->ps.commandTime = level.time - 100;
-  ClientEndFrame(ent);
+  JH_Callback_ClientEndFrame(ent);
+  //ClientEndFrame(ent);
   ClientThink_real(ent, &client->sess.cmd);
   level.clientIsSpawning = 0;
   BG_PlayerStateToEntityState(&client->ps, &ent->s, 1, 1);

@@ -33,10 +33,28 @@ void JH_saveload_initPlayer(scr_entref_t ent)
 
 void JH_saveload_save(scr_entref_t ent)
 {
+    gentity_t *entity = &g_entities[ent.entnum];
+    if(entity->client->sess.sessionState != SESS_STATE_PLAYING)
+    {
+        //player not alive
+        return;
+    }
+    if(jh_players[ent.entnum].playerState != PLAYERSTATE_PLAYING && jh_players[ent.entnum].playerState != PLAYERSTATE_PAUSED)
+    {
+        //player not allowed to save
+        return;
+    }
+    jh_players[ent.entnum].backwardsCount = 0;
+    if(entity->client->ps.groundEntityNum == 1023)
+    {
+        //not on ground
+        JH_util_iprintln(ent.entnum, "^1Cannot save in air");
+        return;
+    }
     JH_SAVE *save = (JH_SAVE *)malloc(sizeof(JH_SAVE));
     if (save == NULL)
     {
-        Scr_AddInt(0);
+        JH_util_iprintln(ent.entnum, "^1Cannot create save");
         return;
     }
     save->checkpoint = jh_players[ent.entnum].checkpoint;
@@ -48,13 +66,23 @@ void JH_saveload_save(scr_entref_t ent)
     jh_players[ent.entnum].save = save;
     VectorCopy(g_entities[ent.entnum].client->ps.origin, save->origin);
     VectorCopy(g_entities[ent.entnum].client->ps.viewangles, save->angles);
-    //todo: add rpgcount etc
-    Scr_AddInt(1);
+    JH_util_iprintln(ent.entnum, "^2Position saved");
 }
 
 void JH_saveload_load(scr_entref_t ent)
 {
     int backwardsCount = Scr_GetInt(0);
+    gentity_t *entity = &g_entities[ent.entnum];
+    if(entity->client->sess.sessionState != SESS_STATE_PLAYING)
+    {
+        //player not alive
+        return;
+    }
+    if(jh_players[ent.entnum].playerState != PLAYERSTATE_PLAYING && jh_players[ent.entnum].playerState != PLAYERSTATE_PAUSED)
+    {
+        //player not allowed to load
+        return;
+    }
     JH_SAVE *save = jh_players[ent.entnum].save;
     while(backwardsCount > 0 && save != NULL)
     {

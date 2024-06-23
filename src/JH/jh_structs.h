@@ -99,6 +99,7 @@ typedef struct
     int frameNum;
     int prevTime;
     int avgFrameTime;
+    int backwardsCount;
     vec3_t oldVelocity;
     bool jumpStartOriginSet;
     vec3_t jumpStartOrigin;

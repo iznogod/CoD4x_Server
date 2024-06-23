@@ -162,8 +162,10 @@ void JH_Callback_PlayerConnect(int clientNum)
   jh_players[clientNum].fpsFix = false;
   jh_players[clientNum].couldBounce = true;
   jh_players[clientNum].wasOnground = false;
-    for(int i = 0; i < FPS_NR_SAMPLES_FPS_AVERAGING; i++)
+  for(int i = 0; i < FPS_NR_SAMPLES_FPS_AVERAGING; i++)
+  {
     jh_players[clientNum].frameTimes[i] = 0;
+  }
   jh_players[clientNum].frameNum = 0;
   jh_players[clientNum].prevTime = 0;
   jh_players[clientNum].avgFrameTime = 0;
@@ -178,6 +180,7 @@ void JH_Callback_PlayerConnect(int clientNum)
   jh_players[clientNum].jumpTime = 0;
   jh_players[clientNum].jumpStartOriginSet = false;
   jh_players[clientNum].run.runState = RUNSTATE_INITIALIZING;
+  jh_players[clientNum].backwardsCount = 0;
 }
 
 void JH_AddFunctions()
@@ -194,4 +197,5 @@ void JH_AddMethods()
   JH_noclip_addMethods();
   JH_util_addMethods();
   JH_checkpoints_addMethods();
+  JH_runs_addMethods();
 }

@@ -412,6 +412,7 @@ typedef enum{
     SCR_CB_FPS,
     SCR_CB_ELEVATE,
     SCR_CB_DRAWCHECKPOINTS,
+    SCR_CB_LOADPOSITION,
     SCR_CB_COUNT
 }script_CallBacks_new_t;
 

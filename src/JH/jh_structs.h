@@ -62,6 +62,14 @@ typedef struct
     int bounceCount;
 }JH_RUN;
 
+typedef enum
+{
+    NEXTFRAME_NONE,
+    NEXTFRAME_LOAD,
+    NEXTFRAME_SAVE,
+    NEXTFRAME_SPAWN
+}JH_NEXTFRAME;
+
 typedef struct checkpoint_s
 {
     vec3_t origin;
@@ -107,6 +115,7 @@ typedef struct
     JH_CHECKPOINT *checkpoint;
     JH_PLAYERSTATE playerState;
     JH_RUN run;
+    JH_NEXTFRAME nextFrame;
     int RPGTime;
     int bounceTime;
     int jumpTime;

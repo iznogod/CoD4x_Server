@@ -4,5 +4,7 @@
 
 void JH_saveLoad_addMethods();
 void JH_saveload_clearSaves(int entnum);
+void JH_saveload_save(int entnum);
+void JH_saveload_load(int entnum);
 
 #endif

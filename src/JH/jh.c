@@ -148,6 +148,30 @@ void JH_Callback_Elevate_Start(struct pmove_t *pm)
   }
 }
 
+void JH_Callback_onFrame()
+{
+  for(int clientNum = 0; clientNum < MAX_CLIENTS; clientNum++)
+  {
+    client_t *client = &svs.clients[clientNum];
+    if(client->state == CS_ACTIVE)
+    {
+      switch(jh_players[clientNum].nextFrame)
+      {
+        case NEXTFRAME_LOAD:
+        {
+          JH_saveload_load(clientNum);
+          break;
+        }
+        default:
+        {
+          break;
+        }
+      }
+      jh_players[clientNum].nextFrame = NEXTFRAME_NONE;
+    }
+  }
+}
+
 void JH_Callback_Elevate_End(struct pmove_t *pm)
 {
   jh_players[pm->ps->clientNum].isElevating = false;
@@ -174,17 +198,19 @@ void JH_Callback_PlayerConnect(int clientNum)
   jh_players[clientNum].oldVelocity[2] = 0;
   JH_saveload_clearSaves(clientNum);
   jh_players[clientNum].checkpoint = NULL;
-  jh_players[clientNum].playerState = PLAYERSTATE_CONNECTED;
+  jh_players[clientNum].playerState = PLAYERSTATE_PLAYING;
   jh_players[clientNum].RPGTime = 0;
   jh_players[clientNum].bounceTime = 0;
   jh_players[clientNum].jumpTime = 0;
   jh_players[clientNum].jumpStartOriginSet = false;
   jh_players[clientNum].run.runState = RUNSTATE_INITIALIZING;
   jh_players[clientNum].backwardsCount = 0;
+  jh_players[clientNum].nextFrame = NEXTFRAME_NONE;
 }
 
 void JH_AddFunctions()
 {
+  Scr_AddFunction("jh_onframe", JH_Callback_onFrame, 0);
   JH_mysql_addFunctions();
   JH_util_addFunctions();
   JH_checkpoints_addFunctions();
@@ -193,7 +219,6 @@ void JH_AddFunctions()
 void JH_AddMethods()
 {
   JH_clientCommand_addMethods();
-  JH_saveLoad_addMethods();
   JH_noclip_addMethods();
   JH_util_addMethods();
   JH_checkpoints_addMethods();

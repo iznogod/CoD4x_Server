@@ -2,17 +2,7 @@
 
 extern JH_PLAYER jh_players[];
 
-void JH_saveload_save(scr_entref_t ent);
-void JH_saveload_load(scr_entref_t ent);
-void JH_saveload_initPlayer(scr_entref_t ent);
 void JH_saveload_loadSave(int clientNum, JH_SAVE *save);
-
-void JH_saveLoad_addMethods()
-{
-    Scr_AddMethod("jh_saveload_initplayer", JH_saveload_initPlayer, qfalse);
-    Scr_AddMethod("jh_saveload_save", JH_saveload_save, qfalse);
-    Scr_AddMethod("JH_saveload_load", JH_saveload_load, qfalse);
-}
 
 void JH_saveload_clearSaves(int clientNum)
 {
@@ -26,64 +16,61 @@ void JH_saveload_clearSaves(int clientNum)
     jh_players[clientNum].save = NULL;
 }
 
-void JH_saveload_initPlayer(scr_entref_t ent)
+void JH_saveload_save(int entnum)
 {
-    JH_saveload_clearSaves(ent.entnum);
-}
-
-void JH_saveload_save(scr_entref_t ent)
-{
-    gentity_t *entity = &g_entities[ent.entnum];
+    gentity_t *entity = &g_entities[entnum];
     if(entity->client->sess.sessionState != SESS_STATE_PLAYING)
     {
         //player not alive
         return;
     }
-    if(jh_players[ent.entnum].playerState != PLAYERSTATE_PLAYING && jh_players[ent.entnum].playerState != PLAYERSTATE_PAUSED)
+    if(jh_players[entnum].playerState != PLAYERSTATE_PLAYING && jh_players[entnum].playerState != PLAYERSTATE_PAUSED)
     {
         //player not allowed to save
+        JH_util_iprintln(entnum, "^1Cannot save right now");
         return;
     }
-    jh_players[ent.entnum].backwardsCount = 0;
+    jh_players[entnum].backwardsCount = 0;
     if(entity->client->ps.groundEntityNum == 1023)
     {
         //not on ground
-        JH_util_iprintln(ent.entnum, "^1Cannot save in air");
+        JH_util_iprintln(entnum, "^1Cannot save in air");
         return;
     }
     JH_SAVE *save = (JH_SAVE *)malloc(sizeof(JH_SAVE));
     if (save == NULL)
     {
-        JH_util_iprintln(ent.entnum, "^1Cannot create save");
+        JH_util_iprintln(entnum, "^1Cannot create save");
         return;
     }
-    save->checkpoint = jh_players[ent.entnum].checkpoint;
-    save->doubleRPGCount = jh_players[ent.entnum].run.doubleRPGCount;
-    save->FPSState = jh_players[ent.entnum].run.FPSState;
-    save->RPGCount = jh_players[ent.entnum].run.RPGCount;
-    save->runFlags = jh_players[ent.entnum].run.runFlags_ever;
-    save->prevSave = jh_players[ent.entnum].save;
-    jh_players[ent.entnum].save = save;
-    VectorCopy(g_entities[ent.entnum].client->ps.origin, save->origin);
-    VectorCopy(g_entities[ent.entnum].client->ps.viewangles, save->angles);
-    JH_util_iprintln(ent.entnum, "^2Position saved");
+    save->checkpoint = jh_players[entnum].checkpoint;
+    save->doubleRPGCount = jh_players[entnum].run.doubleRPGCount;
+    save->FPSState = jh_players[entnum].run.FPSState;
+    save->RPGCount = jh_players[entnum].run.RPGCount;
+    save->runFlags = jh_players[entnum].run.runFlags_ever;
+    save->prevSave = jh_players[entnum].save;
+    jh_players[entnum].save = save;
+    VectorCopy(g_entities[entnum].client->ps.origin, save->origin);
+    VectorCopy(g_entities[entnum].client->ps.viewangles, save->angles);
+    JH_util_iprintln(entnum, "^2Position saved");
 }
 
-void JH_saveload_load(scr_entref_t ent)
+void JH_saveload_load(int entnum)
 {
-    int backwardsCount = Scr_GetInt(0);
-    gentity_t *entity = &g_entities[ent.entnum];
+    gentity_t *entity = &g_entities[entnum];
     if(entity->client->sess.sessionState != SESS_STATE_PLAYING)
     {
         //player not alive
         return;
     }
-    if(jh_players[ent.entnum].playerState != PLAYERSTATE_PLAYING && jh_players[ent.entnum].playerState != PLAYERSTATE_PAUSED)
+    if(jh_players[entnum].playerState != PLAYERSTATE_PLAYING && jh_players[entnum].playerState != PLAYERSTATE_PAUSED)
     {
         //player not allowed to load
+        JH_util_iprintln(entnum, "^1Cannot load right now");
         return;
     }
-    JH_SAVE *save = jh_players[ent.entnum].save;
+    JH_SAVE *save = jh_players[entnum].save;
+    int backwardsCount = jh_players[entnum].backwardsCount;
     while(backwardsCount > 0 && save != NULL)
     {
         save = save->prevSave;
@@ -91,12 +78,15 @@ void JH_saveload_load(scr_entref_t ent)
     }
     if(save == NULL)
     {
-        Scr_AddInt(0);
+        JH_util_iprintln(entnum, "^1Failed loading position");
     }
     else
     {
-        JH_saveload_loadSave(ent.entnum, save);
-        Scr_AddInt(1);
+        JH_saveload_loadSave(entnum, save);
+        gentity_t *ent = SV_GentityNum(entnum);
+        int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_LOADPOSITION], 0);
+        Scr_FreeThread(threadId);
+        JH_util_iprintln(entnum, "^2Position loaded");
     }
 }
 

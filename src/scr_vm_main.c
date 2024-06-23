@@ -745,6 +745,8 @@ void GScr_LoadGameTypeScript(void)
 	script_CallBacks_new[SCR_CB_FPS] = GScr_LoadScriptAndLabel("jh/fps", "CodeCallback_FPSChanged", 1); //implemented
 	script_CallBacks_new[SCR_CB_DRAWCHECKPOINTS] = GScr_LoadScriptAndLabel("jh/checkpoints", "CodeCallback_drawCheckpoints", 1); //implemented
 	script_CallBacks_new[SCR_CB_LOADPOSITION] = GScr_LoadScriptAndLabel("jh/saveload", "CodeCallback_LoadPosition", 1); //implemented
+	script_CallBacks_new[SCR_CB_SPAWN] = GScr_LoadScriptAndLabel("jh/spawn", "CodeCallback_SpawnPlayer", 1); //implemented
+	script_CallBacks_new[SCR_CB_SPECTATE] = GScr_LoadScriptAndLabel("jh/spectate", "CodeCallback_SpawnSpectator", 1); //implemented
 }
 
 

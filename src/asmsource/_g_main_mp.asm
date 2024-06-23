@@ -227,6 +227,7 @@
 	extern voice_deadChat
 	extern voice_extern
 	extern voice_localEcho
+	extern JH_Callback_ClientEndFrame
 
 ;Exports of g_main_mp:
 	global g_maxclients
@@ -1097,7 +1098,7 @@ G_RunFrame_370:
 	cmp byte [esi+0x100], 0x0
 	jz G_RunFrame_380
 	mov [esp], esi
-	call ClientEndFrame
+	call JH_Callback_ClientEndFrame
 	add ebx, 0x1
 	add esi, 0x274
 	cmp ebx, [level+0x1e4]

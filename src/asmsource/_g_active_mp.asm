@@ -91,6 +91,7 @@
 	extern HudElem_UpdateClient
 	extern StuckInClient
 	extern G_UpdateEntityStateFromPlayerState
+	extern JH_Callback_ClientEndFrame
 
 ;Exports of g_active_mp:
 	global _ZZ15G_TouchTriggersP9gentity_sE5range

@@ -30,6 +30,7 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd);
 void JH_Callback_Elevate_Start(struct pmove_t *pm);
 void JH_Callback_Elevate_End(struct pmove_t *pm);
 void JH_Callback_PlayerConnect(int clientNum);
+void JH_Callback_ClientEndFrame(gentity_t *gent);
 void JH_AddFunctions();
 void JH_AddMethods();
 

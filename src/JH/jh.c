@@ -1,6 +1,43 @@
 #include "jh.h"
 JH_PLAYER jh_players[MAX_CLIENTS] = {0};
 
+void JH_Callback_ClientEndFrame(gentity_t *ent)
+{
+  int clientNum = ent - g_entities;
+  client_t *client = &svs.clients[clientNum];
+  
+  if(client->state == CS_ACTIVE)
+  {
+    JH_NEXTFRAME action = jh_players[clientNum].nextFrame;
+    jh_players[clientNum].nextFrame = NEXTFRAME_NONE;
+    switch(action)
+    {
+      case NEXTFRAME_LOAD:
+      {
+        JH_saveload_load(clientNum);
+        break;
+      }
+      case NEXTFRAME_SPAWN:
+      {
+        int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_SPAWN], 0);
+        Scr_FreeThread(threadId);
+        break;
+      }
+      case NEXTFRAME_SPECTATE:
+      {
+        int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_SPECTATE], 0);
+        Scr_FreeThread(threadId);
+        break;
+      }
+      default:
+      {
+        break;
+      }
+    }
+  }
+  ClientEndFrame(ent);
+}
+
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
 {
   client_t *client = &svs.clients[clientNum];
@@ -25,11 +62,13 @@ void JH_Callback_RPG(gentity_t *player, gentity_t *rpg)
   Scr_FreeThread(threadId);
   jh_players[player - g_entities].RPGTime = player->client->lastServerTime;
   client_t *client = &svs.clients[player - g_entities];
+  char str[MAX_STRING_CHARS];
+  snprintf(str, MAX_STRING_CHARS - 1, "RPG angle: %f", client->gentity->client->ps.viewangles[0]);
+  JH_util_iprintln(player - g_entities, str);
   if(jh_players[player - g_entities].bounceTime > jh_players[player - g_entities].jumpTime)
   {
     if(jh_players[player - g_entities].bounceTime > client->gentity->client->sess.cmd.serverTime - 500)
     {
-      char str[MAX_STRING_CHARS];
       snprintf(str, MAX_STRING_CHARS - 1, "Late RPG by %d", client->gentity->client->sess.cmd.serverTime - jh_players[player - g_entities].bounceTime);
       JH_util_iprintln(player - g_entities, str);
     }
@@ -48,6 +87,25 @@ void JH_Callback_RPG(gentity_t *player, gentity_t *rpg)
 void JH_Callback_BeforeClientThink(client_t *client, usercmd_t *ucmd)
 {
   VectorCopy(client->gentity->client->ps.velocity, jh_players[client - svs.clients].oldVelocity);
+  //fpsfix
+  if(jh_players[client - svs.clients].fpsFix)
+  {
+    char *fpsstring = Info_ValueForKey(client->userinfo, "com_maxfps");
+    int fps = atoi(fpsstring);
+    if(fps > 0 && fps <= 1000)
+    {
+      int oldServerTime = ucmd->serverTime;
+      int actualFrameTime = ucmd->serverTime - jh_players[client - svs.clients].prevTime;
+      int wantedFrameTime = 1000 / fps;
+      if(actualFrameTime != wantedFrameTime && abs(actualFrameTime - wantedFrameTime) < 10 && abs(actualFrameTime - wantedFrameTime) <= actualFrameTime / 2)
+      {
+        // adjust frametime
+        client->lastUsercmd.serverTime = client->lastUsercmd.serverTime - actualFrameTime + wantedFrameTime;
+        ucmd->serverTime = ucmd->serverTime - actualFrameTime + wantedFrameTime;
+        printf("Adjusting frametime, was %d is now %d\n", oldServerTime, ucmd->serverTime);
+      }
+    }
+  }
 }
 
 void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
@@ -150,26 +208,6 @@ void JH_Callback_Elevate_Start(struct pmove_t *pm)
 
 void JH_Callback_onFrame()
 {
-  for(int clientNum = 0; clientNum < MAX_CLIENTS; clientNum++)
-  {
-    client_t *client = &svs.clients[clientNum];
-    if(client->state == CS_ACTIVE)
-    {
-      switch(jh_players[clientNum].nextFrame)
-      {
-        case NEXTFRAME_LOAD:
-        {
-          JH_saveload_load(clientNum);
-          break;
-        }
-        default:
-        {
-          break;
-        }
-      }
-      jh_players[clientNum].nextFrame = NEXTFRAME_NONE;
-    }
-  }
 }
 
 void JH_Callback_Elevate_End(struct pmove_t *pm)

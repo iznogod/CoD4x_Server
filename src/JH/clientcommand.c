@@ -78,6 +78,34 @@ void JH_clientcommand_onClientCommand(client_t *client)
     {
         JH_saveload_save(client - svs.clients);
     }
+    else if(!strcasecmp(args[0], "spawn"))
+    {
+        jh_players[client - svs.clients].nextFrame = NEXTFRAME_SPAWN;
+    }
+    else if(!strcasecmp(args[0], "spectate"))
+    {
+        jh_players[client - svs.clients].nextFrame = NEXTFRAME_SPECTATE;
+    }
+    else if(!strcasecmp(args[0], "fpsfix"))
+    {
+        if(argCount > 1)
+        {
+            if(!strcasecmp(args[1], "on"))
+            {
+                jh_players[client - svs.clients].fpsFix = true;
+                JH_util_iprintln(client - svs.clients, "FPSFix enabled");
+            }
+            else if(!strcasecmp(args[1], "off"))
+            {
+                jh_players[client - svs.clients].fpsFix = false;
+                JH_util_iprintln(client - svs.clients, "FPSFix disabled");
+            }
+        }
+        else
+        {
+            JH_util_iprintln(client - svs.clients, "Usage: /fpsfix [on/off]");
+        }
+    }
     else
     {
         Scr_MakeArray();

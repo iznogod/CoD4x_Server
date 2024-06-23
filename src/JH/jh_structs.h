@@ -67,7 +67,8 @@ typedef enum
     NEXTFRAME_NONE,
     NEXTFRAME_LOAD,
     NEXTFRAME_SAVE,
-    NEXTFRAME_SPAWN
+    NEXTFRAME_SPAWN,
+    NEXTFRAME_SPECTATE
 }JH_NEXTFRAME;
 
 typedef struct checkpoint_s

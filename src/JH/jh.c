@@ -171,12 +171,21 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     }
 
     //halfbeat
-    if(!jh_players[clientNum].halfBeat)
+    if(!jh_players[clientNum].halfBeat && !isOnGround)
     {
-      if(fabs(jh_players[clientNum].oldVelocity[0]) < fabs(client->gentity->client->ps.velocity[0]) && fabs(client->gentity->client->ps.velocity[0]) > 250 && ucmd->forwardmove == 0)
-        client->gentity->client->ps.velocity[0] = jh_players[clientNum].oldVelocity[0];
-      if(fabs(jh_players[clientNum].oldVelocity[1]) < fabs(client->gentity->client->ps.velocity[1]) && fabs(client->gentity->client->ps.velocity[1]) > 250 && ucmd->forwardmove == 0)
-        client->gentity->client->ps.velocity[1] = jh_players[clientNum].oldVelocity[1];
+      int frametime = ucmd->serverTime - jh_players[clientNum].prevTime;
+      int accel = round((float)(frametime * g_gravity->current.floatval) * 0.001);
+      if(jh_players[clientNum].oldVelocity[2] - client->gentity->client->ps.velocity[2] == accel)
+      {
+        if(fabs(jh_players[clientNum].oldVelocity[0]) < fabs(client->gentity->client->ps.velocity[0]) && fabs(client->gentity->client->ps.velocity[0]) > 250 && ucmd->forwardmove == 0)
+          client->gentity->client->ps.velocity[0] = jh_players[clientNum].oldVelocity[0];
+        if(fabs(jh_players[clientNum].oldVelocity[1]) < fabs(client->gentity->client->ps.velocity[1]) && fabs(client->gentity->client->ps.velocity[1]) > 250 && ucmd->forwardmove == 0)
+          client->gentity->client->ps.velocity[1] = jh_players[clientNum].oldVelocity[1];
+      }
+      else
+      {
+        //player is sliding
+      }
     }
 
     //autorpg

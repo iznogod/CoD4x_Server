@@ -7,7 +7,6 @@ void JH_FPS_afterClientThink(client_t *client, int time)
 {
     int clientNum = client - svs.clients;
     jh_players[clientNum].frameTimes[jh_players[clientNum].frameNum] = time - jh_players[clientNum].prevTime;
-    jh_players[clientNum].prevTime = time;
 
     // There are x sample slots, if all are used we restart at begin
     if (++jh_players[clientNum].frameNum >= FPS_NR_SAMPLES_FPS_AVERAGING)

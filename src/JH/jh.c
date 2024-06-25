@@ -143,15 +143,15 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
         char str[MAX_STRING_CHARS];
         float offset_x = 30;
 
-        if(jh_players[clientNum].jumpStartOrigin[0] > client->gentity->client->ps.origin[0])
+        if(jh_players[clientNum].jumpStartOrigin[0] > gclient->ps.origin[0])
           offset_x = -30;
         float offset_y = 30;
-        if(jh_players[clientNum].jumpStartOrigin[1] > client->gentity->client->ps.origin[1])
+        if(jh_players[clientNum].jumpStartOrigin[1] > gclient->ps.origin[1])
           offset_y = -30;
         vec3_t diff;
-        diff[0] = fabs(client->gentity->client->ps.origin[0] -  jh_players[clientNum].jumpStartOrigin[0] + offset_x);
-        diff[1] = fabs(client->gentity->client->ps.origin[1] -  jh_players[clientNum].jumpStartOrigin[1] + offset_y);
-        diff[2] = fabs(client->gentity->client->ps.origin[2] -  jh_players[clientNum].jumpStartOrigin[2]);
+        diff[0] = fabs(gclient->ps.origin[0] -  jh_players[clientNum].jumpStartOrigin[0] + offset_x);
+        diff[1] = fabs(gclient->ps.origin[1] -  jh_players[clientNum].jumpStartOrigin[1] + offset_y);
+        diff[2] = fabs(gclient->ps.origin[2] -  jh_players[clientNum].jumpStartOrigin[2]);
         float gap = sqrtf(diff[0] * diff[0] + diff[1] * diff[1]);
         
         snprintf(str, MAX_STRING_CHARS - 1, "Jumped (%.2f, %.2f, %.2f), gap %.2f", diff[0], diff[1], diff[2], gap);
@@ -164,10 +164,10 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     //meme mode
     if(jh_players[clientNum].memeMode)
     {
-      client->gentity->client->ps.velocity[0] = (2 * client->gentity->client->ps.velocity[0] - jh_players[clientNum].oldVelocity[0]);
-      client->gentity->client->ps.velocity[1] = (2 * client->gentity->client->ps.velocity[1] - jh_players[clientNum].oldVelocity[1]);
+      gclient->ps.velocity[0] = (2 * gclient->ps.velocity[0] - jh_players[clientNum].oldVelocity[0]);
+      gclient->ps.velocity[1] = (2 * gclient->ps.velocity[1] - jh_players[clientNum].oldVelocity[1]);
       if(bounced)
-        client->gentity->client->ps.velocity[2] = (1.1 * client->gentity->client->ps.velocity[2] - jh_players[clientNum].oldVelocity[2]);
+        gclient->ps.velocity[2] = (1.1 * gclient->ps.velocity[2] - jh_players[clientNum].oldVelocity[2]);
     }
 
     //halfbeat
@@ -175,12 +175,12 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     {
       int frametime = ucmd->serverTime - jh_players[clientNum].prevTime;
       int accel = round((float)(frametime * g_gravity->current.floatval) * 0.001);
-      if(jh_players[clientNum].oldVelocity[2] - client->gentity->client->ps.velocity[2] == accel)
+      if(jh_players[clientNum].oldVelocity[2] - gclient->ps.velocity[2] == accel)
       {
-        if(fabs(jh_players[clientNum].oldVelocity[0]) < fabs(client->gentity->client->ps.velocity[0]) && fabs(client->gentity->client->ps.velocity[0]) > 250 && ucmd->forwardmove == 0)
-          client->gentity->client->ps.velocity[0] = jh_players[clientNum].oldVelocity[0];
-        if(fabs(jh_players[clientNum].oldVelocity[1]) < fabs(client->gentity->client->ps.velocity[1]) && fabs(client->gentity->client->ps.velocity[1]) > 250 && ucmd->forwardmove == 0)
-          client->gentity->client->ps.velocity[1] = jh_players[clientNum].oldVelocity[1];
+        if(fabs(jh_players[clientNum].oldVelocity[0]) < fabs(gclient->ps.velocity[0]) && fabs(gclient->ps.velocity[0]) > 250 && ucmd->forwardmove == 0)
+          gclient->ps.velocity[0] = jh_players[clientNum].oldVelocity[0];
+        if(fabs(jh_players[clientNum].oldVelocity[1]) < fabs(gclient->ps.velocity[1]) && fabs(gclient->ps.velocity[1]) > 250 && ucmd->forwardmove == 0)
+          gclient->ps.velocity[1] = jh_players[clientNum].oldVelocity[1];
       }
       else
       {
@@ -193,14 +193,15 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     {
       if(bounced)
       {
-        client->gentity->client->ps.velocity[2] += sin(85.0f/360.0f*2.0f*M_PI) * 64;
-        client->gentity->client->ps.velocity[0] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
-        client->gentity->client->ps.velocity[1] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
+        gclient->ps.velocity[2] += sin(85.0f/360.0f*2.0f*M_PI) * 64;
+        gclient->ps.velocity[0] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
+        gclient->ps.velocity[1] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
       }
     }
   }
   JH_FPS_afterClientThink(client, gclient->sess.cmd.serverTime);
   JH_checkpoints_afterClientThink(client);
+  jh_players[clientNum].prevTime = gclient->sess.cmd.serverTime;
 }
 
 void JH_Callback_Elevate_Start(struct pmove_t *pm)

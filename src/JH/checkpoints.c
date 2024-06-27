@@ -10,13 +10,11 @@ void JH_checkpoints_init();
 void JH_checkpoints_add();
 void JH_checkpoints_addConnection();
 void JH_checkpoints_process();
-void JH_checkpoints_setStartCheckpoint(scr_entref_t ent);
 void JH_checkpoints_notifyPass(gentity_t *gent, JH_CHECKPOINT *checkpoint);
 void JH_checkpoints_notifyFinish(gentity_t *gent, JH_CHECKPOINT *checkpoint);
 
 void JH_checkpoints_addMethods()
 {
-    Scr_AddMethod("jh_checkpoints_setstartcheckpoint", JH_checkpoints_setStartCheckpoint, qfalse);
 }
 
 void JH_checkpoints_addFunctions()
@@ -92,11 +90,11 @@ void JH_checkpoints_process()
     }
 }
 
-void JH_checkpoints_setStartCheckpoint(scr_entref_t ent)
+void JH_checkpoints_setStartCheckpoint(int clientNum)
 {
     printf("cp start\n");
-    jh_players[ent.entnum].checkpoint = &startCheckpoint;
-    JH_checkpoints_drawCheckpoints(&g_entities[ent.entnum]);
+    jh_players[clientNum].checkpoint = &startCheckpoint;
+    JH_checkpoints_drawCheckpoints(&g_entities[clientNum]);
 }
 
 void JH_checkpoints_afterClientThink(client_t *client)

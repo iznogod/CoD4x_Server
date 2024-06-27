@@ -23,6 +23,7 @@ void JH_Callback_ClientEndFrame(gentity_t *ent)
         Scr_FreeThread(threadId);
         JH_checkpoints_drawCheckpoints(ent);
         JH_statistics_spawn(clientNum);
+        JH_checkpoints_setStartCheckpoint(clientNum);
         jh_players[clientNum].playerState = PLAYERSTATE_PLAYING;
         break;
       }

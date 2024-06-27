@@ -22,6 +22,7 @@ void JH_Callback_ClientEndFrame(gentity_t *ent)
         int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_SPAWN], 0);
         Scr_FreeThread(threadId);
         JH_checkpoints_drawCheckpoints(ent);
+        JH_statistics_spawn(clientNum);
         jh_players[clientNum].playerState = PLAYERSTATE_PLAYING;
         break;
       }
@@ -49,6 +50,7 @@ void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
   VectorCopy(origin, jh_players[clientNum].jumpStartOrigin);
   jh_players[clientNum].jumpStartOriginSet = true;
 
+  JH_statistics_jump(clientNum);
   if(jh_players[clientNum].RPGTime > client->gentity->client->sess.cmd.serverTime - 500)
   {
     char str[MAX_STRING_CHARS];
@@ -59,6 +61,7 @@ void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin)
 
 void JH_Callback_RPG(gentity_t *player, gentity_t *rpg)
 {
+  JH_statistics_addRPG(player - g_entities);
   int callback = script_CallBacks_new[SCR_CB_RPGFIRE];
   Scr_AddString(BG_GetWeaponDef(rpg->s.weapon)->szInternalName);
   Scr_AddEntity(rpg);
@@ -125,6 +128,7 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     //bounce
     if(bounced)
     {
+      JH_statistics_bounce(clientNum);
       jh_players[clientNum].bounceTime = gclient->sess.cmd.serverTime;
       if(jh_players[clientNum].RPGTime > gclient->sess.cmd.serverTime - 500)
       {
@@ -135,8 +139,9 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     }
 
     //land
-    if (isOnGround && isOnGround != jh_players[clientNum].wasOnground)
+    if (isOnGround && !jh_players[clientNum].wasOnground)
     {
+      JH_statistics_land(clientNum);
       //landed
       if(jh_players[clientNum].jumpStartOriginSet)
       {
@@ -158,6 +163,10 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
         JH_util_iprintln(clientNum, str);
         jh_players[clientNum].jumpStartOriginSet = false;
       }
+    }
+    else if(!isOnGround && jh_players[clientNum].wasOnground)
+    {
+      JH_statistics_leaveGround(clientNum);
     }
     jh_players[clientNum].wasOnground = isOnGround;
 
@@ -191,8 +200,9 @@ void JH_Callback_AfterClientThink(client_t *client, usercmd_t *ucmd)
     //autorpg
     if(jh_players[clientNum].autoRPG)
     {
-      if(bounced)
+      if(bounced && !isOnGround)
       {
+        JH_statistics_addRPG(clientNum);
         gclient->ps.velocity[2] += sin(85.0f/360.0f*2.0f*M_PI) * 64;
         gclient->ps.velocity[0] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
         gclient->ps.velocity[1] -= cos(gclient->ps.viewangles[1] / 360.0f * 2.0f * M_PI);
@@ -209,17 +219,18 @@ void JH_Callback_Elevate_Start(struct pmove_t *pm)
   int clientNum = pm->ps->clientNum;
   if(!jh_players[clientNum].isElevating)
   {
-    jh_players[clientNum].isElevating = true;
-    int callback = script_CallBacks_new[SCR_CB_ELEVATE];
-    gentity_t *ent = SV_GentityNum(clientNum);
-    Scr_AddVector(pm->ps->oldVelocity);
-    int threadId = Scr_ExecEntThread(ent, callback, 1);
-    Scr_FreeThread(threadId);
+    if(pm->ps->groundEntityNum != 1023 || pm->ps->oldVelocity[2] > 0)
+    {
+      //player is onground, normal elevator
+      JH_statistics_onElevateNormal(clientNum);
+    }
+    else
+    {
+      //side elevator
+      //this false-positive triggers on a load from an in-air position too, into an ele
+      JH_statistics_onElevateSide(clientNum);
+    }
   }
-}
-
-void JH_Callback_onFrame()
-{
 }
 
 void JH_Callback_Elevate_End(struct pmove_t *pm)
@@ -253,14 +264,13 @@ void JH_Callback_PlayerConnect(int clientNum)
   jh_players[clientNum].bounceTime = 0;
   jh_players[clientNum].jumpTime = 0;
   jh_players[clientNum].jumpStartOriginSet = false;
-  jh_players[clientNum].run.runState = RUNSTATE_INITIALIZING;
+  jh_players[clientNum].run.runState = RUNSTATE_INITIALIZING; //debug test stuff
   jh_players[clientNum].backwardsCount = 0;
   jh_players[clientNum].nextFrame = NEXTFRAME_NONE;
 }
 
 void JH_AddFunctions()
 {
-  Scr_AddFunction("jh_onframe", JH_Callback_onFrame, 0);
   JH_mysql_addFunctions();
   JH_util_addFunctions();
   JH_checkpoints_addFunctions();

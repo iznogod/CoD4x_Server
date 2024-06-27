@@ -741,7 +741,6 @@ void GScr_LoadGameTypeScript(void)
 
     script_CallBacks_new[SCR_CB_PLAYERCOMMAND] = GScr_LoadScriptAndLabel("jh/playercommand", "CodeCallback_PlayerCommand", 1); //implemented
     script_CallBacks_new[SCR_CB_RPGFIRE] = GScr_LoadScriptAndLabel("jh/rpg", "CodeCallback_FireRPG", 1); //implemented
-    script_CallBacks_new[SCR_CB_ELEVATE] = GScr_LoadScriptAndLabel("jh/elevate", "CodeCallback_Elevate", 1); //implemented
 	script_CallBacks_new[SCR_CB_FPS] = GScr_LoadScriptAndLabel("jh/fps", "CodeCallback_FPSChanged", 1); //implemented
 	script_CallBacks_new[SCR_CB_DRAWCHECKPOINTS] = GScr_LoadScriptAndLabel("jh/checkpoints", "CodeCallback_drawCheckpoints", 1); //implemented
 	script_CallBacks_new[SCR_CB_LOADPOSITION] = GScr_LoadScriptAndLabel("jh/saveload", "CodeCallback_LoadPosition", 1); //implemented

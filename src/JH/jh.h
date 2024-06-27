@@ -22,6 +22,7 @@ extern "C"{
 #include "util.h"
 #include "fps.h"
 #include "runs.h"
+#include "statistics.h"
 
 void JH_Callback_Jump(int clientNum, int serverTime, vec3_t origin);
 void JH_Callback_RPG(gentity_t *player, gentity_t *rpg);

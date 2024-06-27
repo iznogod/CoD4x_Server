@@ -53,6 +53,7 @@ void JH_saveload_save(int entnum)
     VectorCopy(g_entities[entnum].client->ps.origin, save->origin);
     VectorCopy(g_entities[entnum].client->ps.viewangles, save->angles);
     JH_util_iprintln(entnum, "^2Position saved");
+    JH_statistics_onSave(entnum);
 }
 
 void JH_saveload_load(int entnum)
@@ -87,6 +88,7 @@ void JH_saveload_load(int entnum)
         int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_LOADPOSITION], 0);
         Scr_FreeThread(threadId);
         JH_util_iprintln(entnum, "^2Position loaded");
+        JH_statistics_load(entnum);
     }
 }
 

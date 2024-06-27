@@ -128,8 +128,11 @@ void JH_checkpoints_afterClientThink(client_t *client)
 
 void JH_checkpoints_setCheckpoint(int clientNum, JH_CHECKPOINT *checkpoint)
 {
-    jh_players[clientNum].checkpoint = checkpoint;
-    JH_checkpoints_drawCheckpoints(&g_entities[clientNum]);
+    if(jh_players[clientNum].checkpoint != checkpoint)
+    {
+        jh_players[clientNum].checkpoint = checkpoint;
+        JH_checkpoints_drawCheckpoints(&g_entities[clientNum]);
+    }
 }
 
 void JH_checkpoints_notifyPass(gentity_t *gent, JH_CHECKPOINT *checkpoint)

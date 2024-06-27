@@ -2,11 +2,89 @@
 
 extern JH_PLAYER jh_players[];
 
-void JH_clientcommand_ClientCommand(scr_entref_t arg);
+void JH_clientcommand_ClientCommand(scr_entref_t entref);
+void JH_clientcommand_load(scr_entref_t entref);
+void JH_clientcommand_save(scr_entref_t entref);
+void JH_clientcommand_spawn(scr_entref_t entref);
+void JH_clientcommand_spectate(scr_entref_t entref);
+void JH_clientcommand_fpsfix(scr_entref_t entref);
+void JH_clientcommand_mememode(scr_entref_t entref);
+void JH_clientcommand_autorpg(scr_entref_t entref);
 
 void JH_clientCommand_addMethods()
 {
     Scr_AddMethod("clientcommand", JH_clientcommand_ClientCommand, 0);
+    Scr_AddMethod("jh_load", JH_clientcommand_load, 0);
+    Scr_AddMethod("jh_save", JH_clientcommand_save, 0);
+    Scr_AddMethod("jh_spawn", JH_clientcommand_spawn, 0);
+    Scr_AddMethod("jh_spectate", JH_clientcommand_spectate, 0);
+    Scr_AddMethod("jh_fpsfix" , JH_clientcommand_fpsfix, 0);
+    Scr_AddMethod("jh_mememode", JH_clientcommand_mememode, 0);
+    Scr_AddMethod("jh_autorpg", JH_clientcommand_autorpg, 0);
+}
+
+void JH_clientcommand_load(scr_entref_t entref)
+{
+    int backwardsCount = Scr_GetInt(0);
+    jh_players[entref.entnum].nextFrame = NEXTFRAME_LOAD;
+    jh_players[entref.entnum].backwardsCount += backwardsCount;
+}
+
+void JH_clientcommand_save(scr_entref_t entref)
+{
+    JH_saveload_save(entref.entnum);
+}
+
+void JH_clientcommand_spawn(scr_entref_t entref)
+{
+    jh_players[entref.entnum].nextFrame = NEXTFRAME_SPAWN;
+}
+
+void JH_clientcommand_spectate(scr_entref_t entref)
+{
+    jh_players[entref.entnum].nextFrame = NEXTFRAME_SPECTATE;
+}
+
+void JH_clientcommand_fpsfix(scr_entref_t entref)
+{
+    int val = Scr_GetInt(0);
+    jh_players[entref.entnum].fpsFix = (bool) val;
+    if(jh_players[entref.entnum].fpsFix)
+    {
+        JH_util_iprintln(entref.entnum, "^2FPSFix enabled");
+    }
+    else
+    {
+        JH_util_iprintln(entref.entnum, "^1FPSFix disabled");
+    }
+}
+
+void JH_clientcommand_mememode(scr_entref_t entref)
+{
+    int val = Scr_GetInt(0);
+    jh_players[entref.entnum].memeMode = (bool) val;
+    if(jh_players[entref.entnum].memeMode)
+    {
+        JH_util_iprintln(entref.entnum, "^2Meme mode enabled");
+    }
+    else
+    {
+        JH_util_iprintln(entref.entnum, "^1Meme mode disabled");
+    }
+}
+
+void JH_clientcommand_autorpg(scr_entref_t entref)
+{
+    int val = Scr_GetInt(0);
+    jh_players[entref.entnum].autoRPG = (bool) val;
+    if(jh_players[entref.entnum].autoRPG)
+    {
+        JH_util_iprintln(entref.entnum, "^2AutoRPG mode enabled");
+    }
+    else
+    {
+        JH_util_iprintln(entref.entnum, "^1AutoRPG mode disabled");
+    }
 }
 
 void JH_clientcommand_ClientCommand(scr_entref_t arg)
@@ -42,92 +120,40 @@ void JH_clientcommand_ClientCommand(scr_entref_t arg)
 
 void JH_clientcommand_onClientCommand(client_t *client)
 {
-    #define MAX_TOKENIZE_STRINGS 32
-    char args[MAX_TOKENIZE_STRINGS][MAX_STRING_CHARS];
-    int argCount = SV_Cmd_Argc();
-    for(int i = 0; i < argCount && i < MAX_TOKENIZE_STRINGS; i++)
+    int clientNum = client - svs.clients;
+    Scr_MakeArray();
+    int args = SV_Cmd_Argc();
+    for (int i = 0; i < args; i++)
     {
-        SV_Cmd_ArgvBuffer(i, args[i], sizeof(args[i]));
-        for (int j = 0; j < strlen(args[i]); j++)
+        char tmp[1024];
+        SV_Cmd_ArgvBuffer(i, tmp, sizeof(tmp));
+
+        if (i == 1 && tmp[0] >= 20 && tmp[0] <= 22)
         {
-            if ((unsigned int)args[i][j] < 0x0a)
+            char *part = strtok(tmp + 1, " ");
+            while (part != NULL)
             {
-                args[i][j] = '?';
-            }
-        }
-    }
-    printf("cmd is %s\n", args[0]);
-    if(!strcasecmp(args[0], "load"))
-    {
-        int backwardsCount = 0;
-        if(argCount > 1)
-        {
-            backwardsCount = atoi(args[1]);
-        }
-        if(backwardsCount > 0)
-        {
-            jh_players[client - svs.clients].backwardsCount += backwardsCount;
-        }
-        else
-        {
-            jh_players[client - svs.clients].backwardsCount = 0;
-        }
-        jh_players[client - svs.clients].nextFrame = NEXTFRAME_LOAD;
-    }
-    else if(!strcasecmp(args[0], "save"))
-    {
-        JH_saveload_save(client - svs.clients);
-    }
-    else if(!strcasecmp(args[0], "spawn"))
-    {
-        jh_players[client - svs.clients].nextFrame = NEXTFRAME_SPAWN;
-    }
-    else if(!strcasecmp(args[0], "spectate"))
-    {
-        jh_players[client - svs.clients].nextFrame = NEXTFRAME_SPECTATE;
-    }
-    else if(!strcasecmp(args[0], "fpsfix"))
-    {
-        if(argCount > 1)
-        {
-            if(!strcasecmp(args[1], "on"))
-            {
-                jh_players[client - svs.clients].fpsFix = true;
-                JH_util_iprintln(client - svs.clients, "FPSFix enabled");
-            }
-            else if(!strcasecmp(args[1], "off"))
-            {
-                jh_players[client - svs.clients].fpsFix = false;
-                JH_util_iprintln(client - svs.clients, "FPSFix disabled");
-            }
-        }
-        else
-        {
-            JH_util_iprintln(client - svs.clients, "Usage: /fpsfix [on/off]");
-        }
-    }
-    else
-    {
-        Scr_MakeArray();
-        for(int i = 0; i < argCount && i < MAX_TOKENIZE_STRINGS; i++)
-        {
-            if (i == 1 && args[i][0] >= 20 && args[i][0] <= 22)
-            {
-                char *part = strtok(args[i] + 1, " ");
-                while (part != NULL)
+                for (int j = 0; j < strlen(part); j++)
                 {
-                    Scr_AddString(part);
-                    Scr_AddArray();
-                    part = strtok(NULL, " ");
+                    if ((unsigned char)part[j] < 10)
+                        part[j] = '?';
                 }
-            }
-            else
-            {
-                Scr_AddString(args[i]);
+                Scr_AddString(part);
                 Scr_AddArray();
+                part = strtok(NULL, " ");
             }
         }
-        int threadId = Scr_ExecEntThread(&g_entities[client - svs.clients], script_CallBacks_new[SCR_CB_PLAYERCOMMAND], 1);
-        Scr_FreeThread(threadId);
+        else
+        {
+            for (int j = 0; j < strlen(tmp); j++)
+            {
+                if ((unsigned char)tmp[j] < 10)
+                    tmp[j] = '?';
+            }
+            Scr_AddString(tmp);
+            Scr_AddArray();
+        }
     }
+    int threadId = Scr_ExecEntThread(&g_entities[clientNum], script_CallBacks_new[SCR_CB_PLAYERCOMMAND], 1);
+    Scr_FreeThread(threadId);
 }

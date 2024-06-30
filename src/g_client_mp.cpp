@@ -6,7 +6,7 @@
 #include "server_public.h"
 #include "plugin_handler.h"
 
-#include "JH/jh.h"
+#include "JH/general.h"
 
 void __cdecl ClientClearFields(gclient_s *client)
 {

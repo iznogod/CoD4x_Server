@@ -126,7 +126,7 @@ TARGET=$(addprefix $(BIN_DIR)/,$(TARGETNAME)$(BIN_EXT))
 ASM_SOURCES=$(wildcard $(SRC_DIR)/asmsource/*.asm)
 C_SOURCES=$(wildcard $(SRC_DIR)/*.c)
 CPP_SOURCES=$(wildcard $(SRC_DIR)/*.cpp)
-JH_SOURCES=$(wildcard $(JH_EXT_DIR)/*.c)
+JH_SOURCES=$(wildcard $(JH_EXT_DIR)/*.cpp)
 ZLIB_SOURCES=$(wildcard $(ZLIB_DIR)/*.c)
 ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 
@@ -135,7 +135,7 @@ ASSETS_SOURCES=$(wildcard $(ASSETS_DIR)/*.c)
 ASM_OBJ=$(patsubst $(SRC_DIR)/asmsource/%.asm,$(OBJ_DIR)/%.o,$(ASM_SOURCES))
 C_OBJ=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(C_SOURCES))
 CPP_OBJ=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SOURCES))
-JH_OBJ=$(patsubst $(JH_EXT_DIR)/%.c,$(OBJ_DIR)/%.o,$(JH_SOURCES))
+JH_OBJ=$(patsubst $(JH_EXT_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(JH_SOURCES))
 ZLIB_OBJ=$(patsubst $(ZLIB_DIR)/%.c,$(OBJ_DIR)/%.o,$(ZLIB_SOURCES))
 ASSETS_OBJ=$(patsubst $(ASSETS_DIR)/%.c,$(OBJ_DIR)/%.o,$(ASSETS_SOURCES))
 
@@ -218,21 +218,21 @@ FORCE:
 # -march=nocona
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@echo   $(CC)  $@
-	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -I$(JH_EXT_DIR) -o $@ $<
+	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
 
 #####################################
 # A rule to build common c++ server code.
 # -march=nocona
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo   $(CPP)  $@
-	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -I$(JH_EXT_DIR) -o $@ $<
 
 #####################################
 # A rule to build JH code
 #
-$(OBJ_DIR)/%.o: $(JH_EXT_DIR)/%.c
-	@echo   $(CC)  $@
-	@$(CC) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
+$(OBJ_DIR)/%.o: $(JH_EXT_DIR)/%.cpp
+	@echo   $(CPP)  $@
+	@$(CPP) -c $(CFLAGS) $(DCFLAGS) $(C_DEFINES) -o $@ $<
 
 ################################
 # A rule to build assemler code.

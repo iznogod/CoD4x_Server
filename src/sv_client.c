@@ -43,7 +43,7 @@
 #include "sec_crypto.h"
 #include "g_public.h"
 
-#include "JH/jh.h"
+#include "JH/general.h"
 
 #include "sapi.h"
 #include "xac_helper.h"
@@ -743,7 +743,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	}
 */
 	// rate override
-				cl->rate = sv_maxRate->integer;
+	cl->rate = sv_maxRate->integer;
 
 	// snaps override
 	cl->snapshotMsec = 1000 / sv_fps->integer;

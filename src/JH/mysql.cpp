@@ -1,3 +1,4 @@
+#include "general.h"
 #include "mysql.h"
 
 struct mysql_async_connection *first_async_connection = NULL;
@@ -25,23 +26,23 @@ void JH_mysql_close();
 
 void JH_mysql_addFunctions()
 {
-    Scr_AddFunction("mysql_init", JH_mysql_init, 0);
-	Scr_AddFunction("mysql_real_connect", JH_mysql_real_connect, 0);
-	Scr_AddFunction("mysql_query", JH_mysql_query, 0);
-	Scr_AddFunction("mysql_errno", JH_mysql_errno, 0);
-	Scr_AddFunction("mysql_error", JH_mysql_error, 0);
-	Scr_AddFunction("mysql_close", JH_mysql_close, 0);
-	Scr_AddFunction("mysql_store_result", JH_mysql_store_result, 0);
-	Scr_AddFunction("mysql_num_rows", JH_mysql_num_rows, 0);
-	Scr_AddFunction("mysql_fetch_row", JH_mysql_fetch_row, 0);
-	Scr_AddFunction("mysql_free_result", JH_mysql_free_result, 0);
-	Scr_AddFunction("mysql_real_escape_string", JH_mysql_real_escape_string, 0);
-	Scr_AddFunction("mysql_async_create_query", JH_mysql_async_create_query, 0);
-	Scr_AddFunction("mysql_async_create_query_nosave", JH_mysql_async_create_query_nosave, 0);
-	Scr_AddFunction("mysql_async_initializer", JH_mysql_async_initializer, 0);
-	Scr_AddFunction("mysql_async_getdone_list", JH_mysql_async_getdone_list, 0);
-	Scr_AddFunction("mysql_async_getresult_and_free", JH_mysql_async_getresult_and_free, 0);
-	Scr_AddFunction("mysql_reuse_connection", JH_mysql_reuse_connection, 0);
+    Scr_AddFunction("mysql_init", JH_mysql_init, qfalse);
+	Scr_AddFunction("mysql_real_connect", JH_mysql_real_connect, qfalse);
+	Scr_AddFunction("mysql_query", JH_mysql_query, qfalse);
+	Scr_AddFunction("mysql_errno", JH_mysql_errno, qfalse);
+	Scr_AddFunction("mysql_error", JH_mysql_error, qfalse);
+	Scr_AddFunction("mysql_close", JH_mysql_close, qfalse);
+	Scr_AddFunction("mysql_store_result", JH_mysql_store_result, qfalse);
+	Scr_AddFunction("mysql_num_rows", JH_mysql_num_rows, qfalse);
+	Scr_AddFunction("mysql_fetch_row", JH_mysql_fetch_row, qfalse);
+	Scr_AddFunction("mysql_free_result", JH_mysql_free_result, qfalse);
+	Scr_AddFunction("mysql_real_escape_string", JH_mysql_real_escape_string, qfalse);
+	Scr_AddFunction("mysql_async_create_query", JH_mysql_async_create_query, qfalse);
+	Scr_AddFunction("mysql_async_create_query_nosave", JH_mysql_async_create_query_nosave, qfalse);
+	Scr_AddFunction("mysql_async_initializer", JH_mysql_async_initializer, qfalse);
+	Scr_AddFunction("mysql_async_getdone_list", JH_mysql_async_getdone_list, qfalse);
+	Scr_AddFunction("mysql_async_getresult_and_free", JH_mysql_async_getresult_and_free, qfalse);
+	Scr_AddFunction("mysql_reuse_connection", JH_mysql_reuse_connection, qfalse);
 }
 
 void *mysql_async_execute_query(void *input_c) //cannot be called from gsc, is threaded.

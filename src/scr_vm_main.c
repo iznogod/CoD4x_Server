@@ -35,7 +35,7 @@
 #include "cscr_animtree.h"
 #include "cscr_parser.h"
 
-#include "JH/jh.h"
+#include "JH/general.h"
 
 #include <stdarg.h>
 #include <ctype.h>
@@ -301,7 +301,7 @@ void Scr_AddStockFunctions()
 	Scr_AddFunction("strreplace", GScr_StrReplace, 0 );
     Scr_AddFunction("usercall", Scr_Usercall, 0);
 
-	JH_AddFunctions();
+	JH_Callback_AddFunctions();
 }
 
 void Scr_AddStockMethods()
@@ -611,7 +611,7 @@ void Scr_AddStockMethods()
     Scr_AddMethod("setstance", PlayerCmd_SetStance, qfalse);
     Scr_AddMethod("getentityhandlertype", EntityCmd_GetHandlerType, qtrue);
 
-	JH_AddMethods();
+	JH_Callback_AddMethods();
 }
 
 void Scr_InitFunctions()
@@ -742,10 +742,13 @@ void GScr_LoadGameTypeScript(void)
     script_CallBacks_new[SCR_CB_PLAYERCOMMAND] = GScr_LoadScriptAndLabel("jh/playercommand", "CodeCallback_PlayerCommand", 1); //implemented
     script_CallBacks_new[SCR_CB_RPGFIRE] = GScr_LoadScriptAndLabel("jh/rpg", "CodeCallback_FireRPG", 1); //implemented
 	script_CallBacks_new[SCR_CB_FPS] = GScr_LoadScriptAndLabel("jh/fps", "CodeCallback_FPSChanged", 1); //implemented
-	script_CallBacks_new[SCR_CB_DRAWCHECKPOINTS] = GScr_LoadScriptAndLabel("jh/checkpoints", "CodeCallback_drawCheckpoints", 1); //implemented
+	script_CallBacks_new[SCR_CB_DRAWCHECKPOINTS] = GScr_LoadScriptAndLabel("jh/checkpoints", "CodeCallback_DrawCheckpoints", 1); //implemented
 	script_CallBacks_new[SCR_CB_LOADPOSITION] = GScr_LoadScriptAndLabel("jh/saveload", "CodeCallback_LoadPosition", 1); //implemented
 	script_CallBacks_new[SCR_CB_SPAWN] = GScr_LoadScriptAndLabel("jh/spawn", "CodeCallback_SpawnPlayer", 1); //implemented
 	script_CallBacks_new[SCR_CB_SPECTATE] = GScr_LoadScriptAndLabel("jh/spectate", "CodeCallback_SpawnSpectator", 1); //implemented
+	script_CallBacks_new[SCR_CB_UPDATESTATISTICSHUD] = GScr_LoadScriptAndLabel("jh/statistics", "CodeCallback_UpdateStatisticsHUD", 1); //implemented
+	script_CallBacks_new[SCR_CB_UPDATEFLAGSHUD] = GScr_LoadScriptAndLabel("jh/statistics", "CodeCallback_UpdateFlagsHUD", 1); //implemented
+	script_CallBacks_new[SCR_CB_RESETRUN] = GScr_LoadScriptAndLabel("jh/runs", "CodeCallback_ResetRun", 1); //implemented
 }
 
 

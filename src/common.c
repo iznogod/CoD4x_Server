@@ -61,7 +61,7 @@
 #include "null_client.h"
 #include "db_load.h"
 
-#include "JH/jh.h"
+#include "JH/general.h"
 
 #include <string.h>
 #include <setjmp.h>

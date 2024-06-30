@@ -775,6 +775,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	if(Info_ValueForKey(cl->userinfo, "cl_wwwDownload"))
 		cl->wwwDownload = qtrue;
 
+	JH_Callback_UserInfoChanged(cl - svs.clients);
 	PHandler_Event(PLUGINS_ONCLIENTUSERINFOCHANGED, cl);
 
 }

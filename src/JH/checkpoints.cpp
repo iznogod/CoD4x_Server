@@ -162,6 +162,7 @@ void JH_player::passCheckpoint(JH_checkpoint *_checkpoint)
         if(state == PLAYERSTATE_PLAYING)
         {
             run.state = RUNSTATE_FINISHED;
+            pauseRun();
         }
         iprintln("^1Finished");
         setCheckpoint(_checkpoint);

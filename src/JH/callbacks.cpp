@@ -9,11 +9,35 @@ void JH_Callback_PlayerConnect(int clientNum)
     player->onConnect(clientNum);
 }
 
+void JH_Callback_PlayerKilled(int clientNum)
+{
+    if(players[clientNum] != NULL)
+    {
+        players[clientNum]->onKilled();
+    }
+}
+
+void JH_player::onKilled()
+{
+    hideHUD();
+    hideCheckpoints();
+}
+
 void JH_Callback_AddFunctions()
 {
     JH_checkpoints_addFunctions();
     JH_util_addFunctions();
     JH_mysql_addFunctions();
+}
+
+void JH_Callback_UserInfoChanged(int clientNum)
+{
+    char *fpsstring = Info_ValueForKey(svs.clients[clientNum].userinfo, "com_maxfps");
+    int fps = atoi(fpsstring);
+    if(players[clientNum] != NULL && fps > 0 && fps <= 1000)
+    {
+        players[clientNum]->onFPSUserinfo(1000 / fps);
+    }
 }
 
 void JH_Callback_AddMethods()
@@ -22,6 +46,8 @@ void JH_Callback_AddMethods()
     JH_clientCommand_addMethods();
     JH_saves_addMethods();
     JH_runs_addMethods();
+    JH_fps_addMethods();
+    JH_connect_addMethods();
 }
 
 void JH_Callback_ClientEndFrame(gentity_t *ent)
@@ -58,6 +84,7 @@ void JH_Callback_ClientEndFrame(gentity_t *ent)
         break;
       }
     }
+    players[clientNum]->updateHUD(false);
   }
   ClientEndFrame(ent);
 }

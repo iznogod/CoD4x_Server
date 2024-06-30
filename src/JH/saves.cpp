@@ -6,7 +6,11 @@ extern JH_player *players[];
 void JH_clientcommand_load(scr_entref_t entref)
 {
     players[entref.entnum]->nextFrame = NEXTFRAME_LOAD;
-    players[entref.entnum]->backwardsCount += Scr_GetInt(0);
+    int backwardsCount = Scr_GetInt(0);
+    if(backwardsCount == 0)
+        players[entref.entnum]->backwardsCount = 0;
+    else
+        players[entref.entnum]->backwardsCount += backwardsCount;
 }
 
 void JH_clientcommand_save(scr_entref_t entref)
@@ -64,7 +68,8 @@ void JH_player::savePosition()
     _save->checkpoint = checkpoint;
     _save->RPGCount = run.RPGCount;
     _save->doubleRPGCount = run.doubleRPGCount;
-    _save->flags = run.flags;
+    _save->fps.fpsFlags = fps.fpsFlags;
+    _save->fps.frameTimeUserinfo = fps.frameTimeUserinfo;
     VectorCopy(ent->client->ps.origin, _save->origin);
     VectorCopy(ent->client->ps.viewangles, _save->angles);
     run.saveCount++;
@@ -140,8 +145,8 @@ void JH_player::setOriginAndAngles(vec3_t origin, vec3_t angles)
     ent->client->ps.jumpTime = 0; // to reset wallspeed effects
 
     // set origin
-    VectorCopy(save->origin, ent->client->ps.origin);
-    G_SetOrigin(ent, save->origin);
+    VectorCopy(origin, ent->client->ps.origin);
+    G_SetOrigin(ent, origin);
 
     // reset velocity
     ent->client->ps.velocity[0] = 0;
@@ -161,7 +166,7 @@ void JH_player::setOriginAndAngles(vec3_t origin, vec3_t angles)
     ent->client->ps.pm_flags &= ~PMF_PRONE;
     ent->client->sess.cmd.serverTime = level.time; // if this isnt set then errordecay takes place
 
-    SetClientViewAngle(ent, save->angles);
+    SetClientViewAngle(ent, angles);
 
     // create a pmove object and execute to bypass the errordecay thing
     struct pmove_t pm;
@@ -204,12 +209,14 @@ void JH_player::loadPosition()
         return;
     }
     setCheckpoint(_save->checkpoint);
-    setOriginAndAngles(save->origin, save->angles);
+    setOriginAndAngles(_save->origin, _save->angles);
     int threadId = Scr_ExecEntThread(ent, script_CallBacks_new[SCR_CB_LOADPOSITION], 0);
     Scr_FreeThread(threadId);
     run.RPGCount = _save->RPGCount;
     run.doubleRPGCount = _save->doubleRPGCount;
+    run.loadCount++;
     setFPS(_save->fps);
     //setFlags(_save->flags);
     jumpStartOriginSet = false;
+    iprintln("^2Position loaded");
 }

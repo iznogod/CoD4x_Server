@@ -6,6 +6,8 @@
 #include "bg_public.h"
 #include "plugin_handler.h"
 
+#include "JH/general.h"
+
 #include <ctype.h>
 
 
@@ -335,6 +337,7 @@ void __cdecl GScr_AddEntity(gentity_s *pEnt)
 
 void __cdecl Scr_PlayerKilled(gentity_s *self, gentity_s *inflictor, gentity_s *attacker, int damage, int meansOfDeath, int iWeapon, const float *vDir, hitLocation_t hitLoc, int psTimeOffset, int deathAnimDuration)
 {
+  JH_Callback_PlayerKilled(self - g_entities);
   PHandler_Event(PLUGINS_ONPLAYERKILLED, self, inflictor, attacker, damage, meansOfDeath, iWeapon, hitLoc);
   uint16_t hitloc;
   const char *weapname;

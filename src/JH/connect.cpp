@@ -3,6 +3,21 @@
 
 extern JH_player *players[];
 
+void jh_connect_onConnected(scr_entref_t ent);
+
+void JH_connect_addMethods()
+{
+    Scr_AddMethod("jh_onconnected", jh_connect_onConnected, qfalse);
+}
+
+void jh_connect_onConnected(scr_entref_t ent)
+{
+    if(players[ent.entnum] != NULL)
+    {
+        players[ent.entnum]->hideHUD();
+    }
+}
+
 void JH_player::onConnect(int _clientNum)
 {
     if(players[_clientNum] != NULL)
@@ -13,23 +28,13 @@ void JH_player::onConnect(int _clientNum)
     players[_clientNum] = this;
     ent = &g_entities[_clientNum];
     clientNum = _clientNum;
-    isElevating = false;
-    couldBounce = false;
-    wasOnGround = false;
-    backwardsCount = 0;
-    oldVelocity[0] = 0;
-    oldVelocity[1] = 0;
-    oldVelocity[2] = 0;
-    jumpStartOriginSet = false;
     checkpoint = NULL;
     save = NULL;
+    run.state = RUNSTATE_NONE;
     state = PLAYERSTATE_PLAYING;
     nextFrame = NEXTFRAME_NONE;
-    rpgTime = 0;
-    bounceTime = 0;
-    jumpTime = 0;
-    RPGCountJump = 0;
-    hudState = HUDSTATE_OFF;
+    oldHUDstr[0] = '\0';
+    hudState = HUDSTATE_UNDEFINED;
     FPSReset();
     resetSettings();
 }

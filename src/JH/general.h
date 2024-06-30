@@ -24,8 +24,12 @@ void JH_util_addMethods();
 void JH_mysql_addFunctions();
 void JH_saves_addMethods();
 void JH_runs_addMethods();
+void JH_fps_addMethods();
+void JH_connect_addMethods();
 
 void JH_Callback_PlayerConnect(int clientNum);
+void JH_Callback_PlayerKilled(int clientNum);
+void JH_Callback_UserInfoChanged(int clientNum);
 void JH_Callback_AddFunctions();
 void JH_Callback_AddMethods();
 void JH_Callback_ClientEndFrame(gentity_t *ent);
@@ -37,6 +41,11 @@ void JH_Callback_Elevate_End(struct pmove_t *pm);
 void JH_Callback_Elevate_Start(struct pmove_t *pm);
 void JH_clientcommand_onClientCommand(client_t *client);
 
+enum svscmd_type
+{
+	SV_CMD_CAN_IGNORE = 0x0,
+	SV_CMD_RELIABLE = 0x1,
+};
 
 #ifdef __cplusplus
 };

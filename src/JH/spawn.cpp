@@ -12,7 +12,7 @@ void JH_player::spawnPlayer()
 
 bool JH_player::canSpawn()
 {
-    if(players[clientNum]->state == PLAYERSTATE_PLAYING || players[clientNum]->state == PLAYERSTATE_PAUSED)
+    if((state == PLAYERSTATE_PLAYING || state == PLAYERSTATE_PAUSED) && (run.state == RUNSTATE_FINISHED || run.state == RUNSTATE_PLAYING))
         return true;
     iprintln("^3Cannot spawn right now");
     return false;
@@ -34,8 +34,9 @@ void JH_player::onSpawn()
     jumpTime = 0;
     RPGCountJump = 0;
     drawCheckpoints();
+    showHUD();
     resumeRun();
-    FPSReset();
+    FPSSpawn();
 }
 
 bool JH_player::canSpectate()
@@ -56,5 +57,6 @@ void JH_player::spawnSpectator()
 void JH_player::onSpectate()
 {
     hideCheckpoints();
+    hideHUD();
     pauseRun();
 }

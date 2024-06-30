@@ -5,9 +5,16 @@
 
 typedef enum
 {
+    HUDSTATE_UNDEFINED,
     HUDSTATE_OFF,
     HUDSTATE_ON,
 }JH_hudState;
+
+typedef enum
+{
+    FPSFLAG_HAX,
+    FPSFLAG_MIX
+}JH_fpsFlags;
 
 typedef enum
 {
@@ -17,18 +24,6 @@ typedef enum
     PLAYERSTATE_PAUSED,
     PLAYERSTATE_CINEMATIC
 }JH_playerState;
-
-typedef enum
-{
-    FPSSTATE_NONE,
-    FPSSTATE_PURE_43,
-    FPSSTATE_PURE_76,
-    FPSSTATE_PURE_125,
-    FPSSTATE_PURE_250,
-    FPSSTATE_PURE_333,
-    FPSSTATE_MIX,
-    FPSSTATE_HAX
-}JH_fpsState;
 
 typedef enum
 {
@@ -58,38 +53,33 @@ typedef struct JH_checkpoint_s
     struct JH_checkpoint_s *children[CHECKPOINT_CONNECTIONS_MAX];
 }JH_checkpoint;
 
+typedef struct
+{
+    uint32_t fpsFlags;
+    int frameTimeUserinfo;
+}JH_fpsInfo;
+
 class JH_save
 {
     public:
     JH_save *prevSave;
+    
     vec3_t origin;
     vec3_t angles;
     int RPGCount;
     int doubleRPGCount;
-    int flags;
-    JH_fpsState fps;
+    JH_fpsInfo fps;
     JH_checkpoint *checkpoint;
-    JH_save(JH_save *prevSave)
+    JH_save(JH_save *_prevSave)
     {
-        this->prevSave = prevSave;
+        prevSave = _prevSave;
     }
 };
-
-typedef struct
-{
-    int frameTimes[FPS_NR_SAMPLES_FPS_AVERAGING];
-    int framenum;
-    int prevTime;
-    int avgFrameTime;
-    bool initialized;
-}JH_fpsInfo;
 
 typedef struct 
 {
     public:
     JH_runState state;
-    uint32_t flags;
-    JH_fpsState fps;
     int runID;
     int startTime;
     int stopTime;
@@ -127,74 +117,98 @@ class JH_player
     int RPGCountJump;
     JH_hudState hudState;
     gentity_t *ent;
+    char oldHUDstr[MAX_STRING_CHARS];
+
+    int frameTimes[FPS_NR_SAMPLES_FPS_AVERAGING];
+    int framenum;
+    int avgFrameTime;
+    bool frameTimeInitialized;
 
     JH_fpsInfo fps;
 
     int prevTime;
 
     public:
-    virtual ~JH_player(){}
-    virtual void spawnPlayer();
-    virtual bool canSpawn();
-    virtual void onSpawn();
-    virtual void onConnect(int _clientNum);
-    virtual void onDisconnect();
-    virtual void cleanSaves();
-    virtual bool canSave();
-    virtual bool canLoad();
-    virtual void savePosition();
-    virtual void loadPosition();
-    virtual void setOriginAndAngles(vec3_t origin, vec3_t angles);
-    virtual void setCheckpoint(JH_checkpoint *_checkpoint);
-    virtual void setStartCheckpoint();
-    virtual void drawCheckpoints();
-    virtual void hideCheckpoints();
-    virtual void passCheckpoint(JH_checkpoint *_checkpoint);
-    virtual void checkpointThink();
-    virtual bool isPassingCheckpoint(JH_checkpoint *_checkpoint);
-    virtual void onSpectate();
-    virtual void pauseRun();
-    virtual void resumeRun();
-    virtual void setFPS(JH_fpsState fps);
-    //virtual void setFlags(uint32_t flags);
-    virtual void resetRun();
-    virtual void intializeRun(int _runID);
-    virtual void resetSettings();
-    virtual void setFPSFix(bool val);
-    virtual void setAutoRPG(bool val);
-    virtual void setHalfBeat(bool val);
-    virtual void setMemeMode(bool val);
-    virtual bool canSpectate();
-    virtual void spawnSpectator();
-    virtual void onJump(vec3_t origin);
-    virtual void onRPGShot(gentity_t *rpg);
-    virtual void onRPG();
-    virtual void beforeClientThink(usercmd_t *ucmd);
-    virtual void afterClientThink(usercmd_t *ucmd);
-    virtual void onBounce();
-    virtual void onLand();
-    virtual void applyAntiHalfbeat(usercmd_t *ucmd);
-    virtual void applyAutoRPG(usercmd_t *ucmd);
-    virtual void onDoubleRPG();
-    virtual void applyMemeMode(bool bounced);
-    virtual void onElevate(pmove_t *pm);
-    virtual void onFPS(JH_fpsState);
-    virtual void FPSThink(int time);
-    virtual void FPSReset();
+     ~JH_player(){}
+    
+     void onConnect(int _clientNum);
+     void onDisconnect();
 
-    bool isOnGround()
-    {
-        return ent->client->ps.groundEntityNum != 1023;
-    }
-    void iprintln(const char *str)
-    {
-        SV_GameSendServerCommand(clientNum, 0, va("%c \"%s\"", 'f', str));
-    }
+     bool canSpawn();
+     void spawnPlayer();
+     void onSpawn();
 
-    bool canBounce()
-    {
-        return ((ent->client->ps.pm_flags & 0x4000) != 0);
-    }
+     bool canSpectate();
+     void spawnSpectator();
+     void onSpectate();
+
+     void cleanSaves();
+     bool canSave();
+     bool canLoad();
+     void savePosition();
+     void loadPosition();
+     void setOriginAndAngles(vec3_t origin, vec3_t angles);
+
+     void setCheckpoint(JH_checkpoint *_checkpoint);
+     void setStartCheckpoint();
+     void passCheckpoint(JH_checkpoint *_checkpoint);
+     void checkpointThink();
+     bool isPassingCheckpoint(JH_checkpoint *_checkpoint);
+
+     void drawCheckpoints();
+     void hideCheckpoints();
+    
+     void pauseRun();
+     void resumeRun();
+     void resetRun();
+     void intializeRun(int _runID);
+
+     void resetSettings();
+     void setFPSFix(bool val);
+     void setAutoRPG(bool val);
+     void setHalfBeat(bool val);
+     void setMemeMode(bool val);
+
+     void onFPSUserinfo(int frametime);
+     void onFPSClientThink(int frametime);
+
+     void onFPS(int frametime);
+     void FPSSpawn();
+     void FPSThink(int time);
+     void FPSReset();
+    
+     void onJump(vec3_t origin);
+     void onRPGShot(gentity_t *rpg);
+     void onRPG();
+     void onKilled();
+     void onBounce();
+     void onLand();
+     void onDoubleRPG();
+     void onElevate(pmove_t *pm);
+
+     void beforeClientThink(usercmd_t *ucmd);
+     void afterClientThink(usercmd_t *ucmd);
+
+     void applyAntiHalfbeat(usercmd_t *ucmd);
+     void applyAutoRPG(usercmd_t *ucmd);
+     void applyMemeMode(bool bounced);
+
+     bool isOnGround();
+     void iprintln(const char *str);
+     bool canBounce();
+
+     void hideHUD();
+     void showHUD();
+     void updateHUD(bool force);
+     void makeHUDString(char *str);
+     int getFPSString(char *str);
+     int getFPSNumber();
+     void warnHax();
+     void warnMix();
+     void setFPS(JH_fpsInfo _fps);
+     int getFrameTimeUserinfo();
+
+     void setClientCvar(svscmd_type rel, const char *cvar, const char *str);
 };
 
 #endif
